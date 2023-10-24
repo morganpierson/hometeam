@@ -15,7 +15,14 @@ const config: Config = {
       gray_light: '#e5e5e5',
       white: '#ffffff',
     },
-    extend: {},
+    fontFamily: {
+      sans: ['inter'],
+    },
+    extend: {
+      blur: {
+        xs: '2px',
+      },
+    },
   },
   plugins: [],
 }

@@ -10,22 +10,6 @@ const EmailListInput = ({
   handleAddEmail,
   handleRemoveEmail,
 }) => {
-  // const [email, setEmail] = useState('')
-  // const [emailList, setEmailList] = useState([])
-
-  // const handleAddEmail = () => {
-  //   if (email.trim() !== '') {
-  //     setEmailList([...emailList, email])
-  //     setEmail('')
-  //   }
-  // }
-
-  // const handleRemoveEmail = (index) => {
-  //   const updatedList = [...emailList]
-  //   updatedList.splice(index, 1)
-  //   setEmailList(updatedList)
-  // }
-
   return (
     <div>
       <div className="flex flex-col">

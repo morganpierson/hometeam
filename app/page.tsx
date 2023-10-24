@@ -7,7 +7,7 @@ export default async function Home() {
   let href = userId ? '/org' : '/new-user'
 
   return (
-    <div className="h-screen w-screen bg-black flex justify-center items-center text-white">
+    <div className="h-screen w-screen bg-black flex justify-center items-center ">
       <div>
         <h1>HR APP HOME</h1>
       </div>

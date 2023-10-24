@@ -18,20 +18,23 @@ model User {
   clerkId String @unique
   email String @unique
   isAdmin Boolean?
+  profileImage String?
   name String?
   role String?
-  department String?
   employmentStart DateTime?
   employmentEnd DateTime?
   availableForAcquisition Boolean?
   referralsReceived User[] @relation("UserReferences")
   referralsProvided User[] @relation("UserReferences")
-  contributions Project[]
+  projects Project[]
+  team Team? @relation(fields: [teamId], references: [id])
+  teamId String?
   acquisitionOffer AcquisitionOffer?
   company Company? @relation(fields: [companyId], references: [id])
   companyId String?
 
   @@index([companyId])
+  @@index([teamId])
 }
 
 model AcquisitionOffer {
@@ -49,7 +52,21 @@ model Company {
   employees User[]
   name String
   size String
-  industries Industry[] 
+  industries Industry[]
+  teams Team[] 
+}
+
+model Team {
+  id String @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  members User[]
+  name String
+  projects Project[]
+  company Company? @relation(fields: [companyId], references: [id])
+  companyId String?
+
+  @@index([companyId])
 }
 
 model Project {
@@ -60,6 +77,7 @@ model Project {
   businessWeight Int @default(0)
   description String @db.Text
   contributors User[]
+  teams Team[]
 }
 
 model Industry {

@@ -16,22 +16,8 @@ const CreatOrgForm = ({ companySize, industryOptions }) => {
     setSelectedIndustryOptions(selectedValues)
   }
 
-  const handleAddEmail = () => {
-    if (email.trim() !== '') {
-      setEmailList([...emailList, email])
-      setEmail('')
-    }
-  }
-
-  const handleRemoveEmail = (index) => {
-    const updatedList = [...emailList]
-    updatedList.splice(index, 1)
-    setEmailList(updatedList)
-    console.log(emailList)
-  }
-
   return (
-    <div>
+    <div className="flex justify-center items-center">
       <form action={createNewOrg} method="post" className="flex flex-col">
         <div className="flex flex-col">
           <label htmlFor="orgName">Company Name</label>

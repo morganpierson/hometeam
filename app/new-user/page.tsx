@@ -15,11 +15,12 @@ const createNewUser = async () => {
       data: {
         clerkId: user.id,
         email: user?.emailAddresses[0].emailAddress,
+        profileImage: user?.imageUrl,
       },
     })
   }
 
-  redirect('/org/create')
+  redirect('/org/onboarding')
 }
 
 const NewUser = async () => {

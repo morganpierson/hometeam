@@ -2,17 +2,33 @@
 
 import { redirect } from 'next/navigation'
 import { prisma } from './db'
+import { getUserByClerkID } from './auth'
 
 export const createNewOrg = async (formData: FormData) => {
+  const user = await getUserByClerkID()
   const newCompany = await prisma.company.create({
     data: {
       name: formData.get('orgName'),
       size: formData.get('orgSize'),
     },
   })
+
   const orgIndustries = await prisma.industry.findMany({
     where: {
       name: { in: formData.getAll('orgIndustries') },
+    },
+  })
+
+  await prisma.user.update({
+    where: {
+      clerkId: user.clerkId,
+    },
+    data: {
+      company: {
+        connect: {
+          id: newCompany.id,
+        },
+      },
     },
   })
 
