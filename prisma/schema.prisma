@@ -11,6 +11,7 @@ datasource db {
   relationMode = "prisma"
 }
 
+//User = IC within a team including admin
 model User {
   id String @id @default(uuid())
   createdAt DateTime @default(now())
@@ -23,28 +24,33 @@ model User {
   role String?
   employmentStart DateTime?
   employmentEnd DateTime?
-  availableForAcquisition Boolean?
+  availableForAcquisition Boolean @default(false)
   referralsReceived User[] @relation("UserReferences")
   referralsProvided User[] @relation("UserReferences")
-  projects Project[]
+  projects String?
   team Team? @relation(fields: [teamId], references: [id])
   teamId String?
   acquisitionOffer AcquisitionOffer?
   company Company? @relation(fields: [companyId], references: [id])
   companyId String?
+  resume String?
 
   @@index([companyId])
   @@index([teamId])
 }
 
+//AqcquisitionOffer = terms under which a company is offering up an employee or willing to release an employee
 model AcquisitionOffer {
   id String @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user User @relation(fields: [userId], references: [id])
   userId String @unique
+  offer String?
+  request String?
 }
 
+//Company = Company under which many Users & Teams work. Companies create AcquisitionOffers
 model Company {
   id String @id @default(uuid())
   createdAt DateTime @default(now())
@@ -56,6 +62,7 @@ model Company {
   teams Team[] 
 }
 
+//Teams are subset of Company. Teams produce projects with ICs
 model Team {
   id String @id @default(uuid())
   createdAt DateTime @default(now())
@@ -69,6 +76,7 @@ model Team {
   @@index([companyId])
 }
 
+//Project = contributions by teams and ICs. Technical and non-technical
 model Project {
   id String @id @default(uuid())
   createdAt DateTime @default(now())
@@ -76,10 +84,11 @@ model Project {
   title String
   businessWeight Int @default(0)
   description String @db.Text
-  contributors User[]
+  // contributors User[]
   teams Team[]
 }
 
+//Industry = markets in which a company operates (e.g. SaaS, eCommerce, AI/ML). Companies can operate within multiple Industries
 model Industry {
   id String @id @default(uuid())
   createdAt DateTime @default(now())

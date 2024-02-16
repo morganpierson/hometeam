@@ -1,6 +1,8 @@
 import { getUserByClerkID } from '@/utils/auth'
 import { prisma } from '@/utils/db'
 import { clerkClient } from '@clerk/nextjs'
+import Link from 'next/link'
+import UserCard from '@/app/components/user-card'
 
 const getOrgData = async () => {
   const user = await getUserByClerkID()
@@ -16,7 +18,11 @@ const getOrgData = async () => {
 const getTeamList = async () => {
   //query the list of all teams within the organization
   const user = await getUserByClerkID()
+  const currentOrg = await getOrgData()
   const teams = await prisma.team.findMany({
+    where: {
+      companyId: currentOrg.id,
+    },
     include: {
       members: true,
     },
@@ -30,7 +36,6 @@ const getTeamList = async () => {
     }
     return 0
   })
-
   return sortedTeams
 }
 
@@ -58,19 +63,15 @@ const OrgDetailsPage = async ({ params }) => {
       <div className="ml-6 mt-8">
         {teamData.map((team) => {
           return (
-            <div>
+            <div key={team.id}>
               <h2 className="text-xl mt-8 tracking-widest font-medium">
                 {team.name}
               </h2>
               <div className="flex">
                 {team.members.map((member) => (
-                  <span className="mr-10 mt-4 flex flex-col justify-center items-center">
-                    <img
-                      src={member.profileImage || ''}
-                      className="h-24 w-24 rounded-full hover:blur-xs"
-                    />
-                    {member.name}
-                  </span>
+                  <Link key={member.id} href={`/org/user/${member.id}`}>
+                    <UserCard teamMember={member} />
+                  </Link>
                 ))}
               </div>
             </div>

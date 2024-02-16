@@ -45,5 +45,18 @@ export const createNewOrg = async (formData: FormData) => {
 
   const orgName = formData.get('orgName')?.toString().toLowerCase()
 
-  redirect(`/org/${orgName}`)
+  redirect(`/admin/org/${orgName}`)
 }
+
+// export const updateUserInfo = async (formData: FormData, id: string) => {
+//   await prisma.user.update({
+//     where: {
+//       id: id,
+//     },
+//     data: {
+//       name: formData.get('name')?.toString(),
+//       email: formData.get('email')?.toString(),
+//       role: formData.get('role')?.toString(),
+//     },
+//   })
+// }

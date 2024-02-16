@@ -1,16 +1,12 @@
 'use client'
 
-import EmailListInput from './invite-list'
 import MultiSelectComponent from './multiselect'
 import SingleSelect from './single-select'
 import { createNewOrg } from '@/utils/actions'
 import { useState } from 'react'
-import styles from '@/tailwind.config'
 
 const CreatOrgForm = ({ companySize, industryOptions }) => {
   const [selectedIndustryOptions, setSelectedIndustryOptions] = useState([])
-  const [email, setEmail] = useState('')
-  const [emailList, setEmailList] = useState([])
 
   const handleSelectChange = (selectedValues) => {
     setSelectedIndustryOptions(selectedValues)

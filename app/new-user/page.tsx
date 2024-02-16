@@ -18,9 +18,16 @@ const createNewUser = async () => {
         profileImage: user?.imageUrl,
       },
     })
-  }
+    redirect('/admin/org/onboarding')
+  } else {
+    const userOrg = await prisma.company.findFirst({
+      where: {
+        id: match.companyId,
+      },
+    })
 
-  redirect('/org/onboarding')
+    redirect(`/admin/org/${userOrg?.name.toLowerCase()}`)
+  }
 }
 
 const NewUser = async () => {
