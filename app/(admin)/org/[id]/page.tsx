@@ -64,7 +64,10 @@ const OrgDetailsPage = async ({ params }) => {
         {teamData.map((team) => {
           return (
             <div key={team.id}>
-              <h2 className="text-xl mt-8 tracking-widest font-medium">
+              <h2
+                key={team.id}
+                className="text-xl mt-8 tracking-widest font-medium"
+              >
                 {team.name}
               </h2>
               <div className="flex">
