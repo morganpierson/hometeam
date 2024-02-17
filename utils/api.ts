@@ -35,3 +35,20 @@ export const updateUserProfile = async (id, content) => {
     throw new Error('Something went wrong on API server!')
   }
 }
+
+export const createNewOrg = async (formData) => {
+  console.log('CREATING NEW ORG!!!')
+  const res = await fetch(
+    new Request(createURL('/api/org/create'), {
+      method: 'POST',
+      body: formData,
+    })
+  )
+  if (res.ok) {
+    const data = await res.json()
+    console.log(data.data)
+    return data.data
+  } else {
+    throw new Error('Something went wrong on API server!')
+  }
+}

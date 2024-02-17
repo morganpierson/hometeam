@@ -1,20 +1,19 @@
 'use client'
-
 import MultiSelectComponent from './multiselect'
 import SingleSelect from './single-select'
 import { createNewOrg } from '@/utils/actions'
-import { useState } from 'react'
+import { useFormState } from 'react-dom'
 
 const CreatOrgForm = ({ companySize, industryOptions }) => {
-  const [selectedIndustryOptions, setSelectedIndustryOptions] = useState([])
-
-  const handleSelectChange = (selectedValues) => {
-    setSelectedIndustryOptions(selectedValues)
-  }
+  const [state, formAction] = useFormState(createNewOrg, {
+    name: '',
+    size: '',
+    industries: [],
+  })
 
   return (
     <div className="flex justify-center items-center">
-      <form action={createNewOrg} method="post" className="flex flex-col">
+      <form action={formAction} className="flex flex-col">
         <div className="flex flex-col">
           <label htmlFor="orgName">Company Name</label>
           <input
@@ -35,13 +34,11 @@ const CreatOrgForm = ({ companySize, industryOptions }) => {
           />
         </div>
         <div className="flex flex-col pt-6">
-          <MultiSelectComponent
+          <SingleSelect
             name={'orgIndustries'}
-            labelName={'Company Industries'}
+            labelName={'Company Industry'}
             options={industryOptions}
             classname={'w-96 h-auto mt-2 mb-4'}
-            handleSelectChange={handleSelectChange}
-            selectedOptions={selectedIndustryOptions}
           />
         </div>
         {/* <div className="flex flex-col pt-6">
@@ -56,9 +53,9 @@ const CreatOrgForm = ({ companySize, industryOptions }) => {
         <div className="pt-4 flex justify-end w-96 col-start-2">
           <button
             type="submit"
-            className="bg-blue text-white w-24 h-12 rounded-md"
+            className="rounded-full bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           >
-            Create
+            Create Org
           </button>
         </div>
       </form>
