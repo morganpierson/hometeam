@@ -4,7 +4,15 @@ import { Dialog, Transition } from '@headlessui/react'
 import { CheckIcon } from '@heroicons/react/24/outline'
 import EditUserForm from './edit-user-form'
 
-const EditUserModal = ({ open, setOpen, user }) => {
+const EditUserModal = ({
+  open,
+  setOpen,
+  user,
+}: {
+  open: boolean
+  setOpen: (value: boolean) => void
+  user: any
+}) => {
   //   const [open, setOpen] = useState(true)
 
   return (

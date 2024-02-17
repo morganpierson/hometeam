@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 
 const createNewUser = async () => {
   const user = await currentUser()
+  console.log('USER FOUND ', user)
   const match = await prisma.user.findUnique({
     where: {
       clerkId: user.id as string,
@@ -18,7 +19,7 @@ const createNewUser = async () => {
         profileImage: user?.imageUrl,
       },
     })
-    redirect('/admin/org/onboarding')
+    redirect('/org/onboarding')
   } else {
     const userOrg = await prisma.company.findFirst({
       where: {
@@ -26,7 +27,7 @@ const createNewUser = async () => {
       },
     })
 
-    redirect(`/admin/org/${userOrg?.name.toLowerCase()}`)
+    redirect(`/org/${userOrg?.name.toLowerCase()}`)
   }
 }
 

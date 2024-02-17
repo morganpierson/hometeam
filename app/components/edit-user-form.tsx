@@ -6,8 +6,16 @@ import {
 } from '@heroicons/react/24/solid'
 import { useState } from 'react'
 
-export default function EditUserForm({ user, saveUser, cancelSave }) {
-  const handleSubmit = async (e) => {
+export default function EditUserForm({
+  user,
+  saveUser,
+  cancelSave,
+}: {
+  user: any
+  saveUser: any
+  cancelSave: any
+}) {
+  const handleSubmit = async (e: any) => {
     e.preventDefault()
     const form = e.target
     const formData = new FormData(form)
