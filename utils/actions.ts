@@ -3,6 +3,26 @@
 import { redirect } from 'next/navigation'
 import { prisma } from './db'
 import { getUserByClerkID } from './auth'
+import { revalidatePath } from 'next/cache'
+
+export const updateUserInfo = async (
+  prevState: {
+    email: string
+    id: string
+  },
+  formData: FormData
+) => {
+  await prisma.user.update({
+    where: {
+      id: formData.get('id')?.toString(),
+    },
+    data: {
+      email: formData.get('email')?.toString(),
+    },
+  })
+
+  revalidatePath(`/user/${formData.get('id')?.toString}`)
+}
 
 export const createNewOrg = async (
   prevState: {
@@ -55,16 +75,3 @@ export const createNewOrg = async (
 
   redirect(`/org/${orgName}`)
 }
-
-// export const updateUserInfo = async (formData: FormData, id: string) => {
-//   await prisma.user.update({
-//     where: {
-//       id: id,
-//     },
-//     data: {
-//       name: formData.get('name')?.toString(),
-//       email: formData.get('email')?.toString(),
-//       role: formData.get('role')?.toString(),
-//     },
-//   })
-// }

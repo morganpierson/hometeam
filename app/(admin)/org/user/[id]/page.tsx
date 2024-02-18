@@ -17,7 +17,7 @@ const getUser = async (id) => {
 const AdminUserProfile = async ({ params }) => {
   const user = await getUser(params.id)
   return (
-    <div className="mt-12 mx-64">
+    <div className="px-10 h-24">
       <UserProfile user={user} />
     </div>
   )
