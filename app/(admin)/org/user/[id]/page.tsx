@@ -8,6 +8,8 @@ const getUser = async (id) => {
     },
     include: {
       team: true,
+      company: true,
+      acquisitionOffer: true,
     },
   })
 
@@ -16,6 +18,7 @@ const getUser = async (id) => {
 
 const AdminUserProfile = async ({ params }) => {
   const user = await getUser(params.id)
+  console.log('USER')
   return (
     <div className="px-10 h-24">
       <UserProfile user={user} />

@@ -1,39 +1,37 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
 
 //User = IC within a team including admin
 model User {
-  id String @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  clerkId String @unique
-  email String @unique
-  isAdmin Boolean?
-  profileImage String?
-  name String?
-  role String?
-  employmentStart DateTime?
-  employmentEnd DateTime?
-  availableForAcquisition Boolean @default(false)
-  referralsReceived User[] @relation("UserReferences")
-  referralsProvided User[] @relation("UserReferences")
-  projects String?
-  team Team? @relation(fields: [teamId], references: [id])
-  teamId String?
-  acquisitionOffer AcquisitionOffer?
-  company Company? @relation(fields: [companyId], references: [id])
-  companyId String?
-  resume String?
+  id                      String            @id @default(uuid())
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  clerkId                 String            @unique
+  email                   String?           @unique
+  isAdmin                 Boolean?
+  name                    String?
+  role                    String?
+  employmentStart         DateTime?
+  employmentEnd           DateTime?
+  availableForAcquisition Boolean           @default(false)
+  companyId               String?
+  teamId                  String?
+  profileImage             String?
+  
+  resume                  String?
+  referralsReceived       User[]            @relation("UserReferences")
+  referralsProvided       User[]            @relation("UserReferences")
+  team                    Team?             @relation(fields: [teamId], references: [id])
+  acquisitionOffer        AcquisitionOffer?
+  company                 Company?          @relation(fields: [companyId], references: [id])
+  projects               Project[]         @relation("ProjectToUser")
 
   @@index([companyId])
   @@index([teamId])
@@ -41,58 +39,92 @@ model User {
 
 //AqcquisitionOffer = terms under which a company is offering up an employee or willing to release an employee
 model AcquisitionOffer {
-  id String @id @default(uuid())
+  id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user User @relation(fields: [userId], references: [id])
-  userId String @unique
-  offer String?
-  request String?
+  userId    String   @unique
+  amount    Int? @default(0)
+  offerType String?
+  user      User?    @relation(fields: [userId], references: [id])
 }
 
 //Company = Company under which many Users & Teams work. Companies create AcquisitionOffers
 model Company {
-  id String @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  employees User[]
-  name String
-  size String
+  id         String     @id @default(uuid())
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  name       String
+  size       String
+  employees  User[]
   industries Industry[]
-  teams Team[] 
+  teams      Team[]
+  projects   Project[]
+  logo       String?
 }
 
 //Teams are subset of Company. Teams produce projects with ICs
 model Team {
-  id String @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  members User[]
-  name String
-  projects Project[]
-  company Company? @relation(fields: [companyId], references: [id])
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  name      String
   companyId String?
+  members   User[]
+  projects  Project[]
+  company   Company?  @relation(fields: [companyId], references: [id])
 
   @@index([companyId])
 }
 
 //Project = contributions by teams and ICs. Technical and non-technical
 model Project {
-  id String @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title String
-  businessWeight Int @default(0)
-  description String @db.Text
-  // contributors User[]
-  teams Team[]
-}
+  id             String   @id @default(uuid())
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  title          String
+  businessWeight Int      @default(0)
+  description    String   @db.Text
+  teams          Team[]
+  users          User[] @relation("ProjectToUser")
+  company   Company?  @relation(fields: [companyId], references: [id]) 
+   
+  companyId String?
+  @@index([companyId])
+  }
 
 //Industry = markets in which a company operates (e.g. SaaS, eCommerce, AI/ML). Companies can operate within multiple Industries
 model Industry {
-  id String @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  name String 
-  companies Company[] 
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  name      String
+  companies Company[]
+}
+
+model CompanyToIndustry {
+  A String
+  B String
+
+  @@unique([A, B], map: "_CompanyToIndustry_AB_unique")
+  @@index([B], map: "_CompanyToIndustry_B_index")
+  @@map("_CompanyToIndustry")
+}
+
+model ProjectToTeam {
+  A String
+  B String
+
+  @@unique([A, B], map: "_ProjectToTeam_AB_unique")
+  @@index([B], map: "_ProjectToTeam_B_index")
+  @@map("_ProjectToTeam")
+}
+
+model UserReferences {
+  A String
+  B String
+
+  @@unique([A, B], map: "_UserReferences_AB_unique")
+  @@index([B], map: "_UserReferences_B_index")
+  @@map("_UserReferences")
 }

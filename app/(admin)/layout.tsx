@@ -1,27 +1,12 @@
-'use client'
-/*
-  This example requires some changes to your config:
-  
-  ```
-  // tailwind.config.js
-  module.exports = {
-    // ...
-    plugins: [
-      // ...
-      require('@tailwindcss/forms'),
-    ],
-  }
-  ```
-*/
-import { Fragment, useState } from 'react'
+// 'use client'
+
+// import { Fragment, useState } from 'react'
 import { Dialog, Menu, Transition } from '@headlessui/react'
 import {
   Bars3Icon,
   BellIcon,
   CalendarIcon,
-  ChartPieIcon,
   Cog6ToothIcon,
-  DocumentDuplicateIcon,
   FolderIcon,
   HomeIcon,
   UsersIcon,
@@ -29,12 +14,18 @@ import {
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { UserButton } from '@clerk/nextjs'
+import SideBarNav from '@/app/components/side-bar-nav'
 
 const navigation = [
   { name: 'Inbox', href: '#', icon: HomeIcon, current: true },
-  { name: 'Team Org', href: '#', icon: UsersIcon, current: false },
+  { name: 'Team Org', href: '/org/hometeam', icon: UsersIcon, current: false },
   { name: 'Team Projects', href: '#', icon: CalendarIcon, current: false },
-  { name: 'Marketplace', href: '#', icon: FolderIcon, current: false },
+  {
+    name: 'Marketplace',
+    href: '/marketplace',
+    icon: FolderIcon,
+    current: false,
+  },
 
   //   { name: 'Documents', href: '#', icon: DocumentDuplicateIcon, current: false },
   //   { name: 'Reports', href: '#', icon: ChartPieIcon, current: false },
@@ -54,19 +45,13 @@ function classNames(...classes) {
 }
 
 export default function OrgLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  // const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <>
-      {/*
-        This example requires updating your template:
+      <SideBarNav children={children} />
 
-        ```
-        <html class="h-full bg-white">
-        <body class="h-full">
-        ```
-      */}
-      <div>
+      {/* <div>
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog
             as="div"
@@ -120,7 +105,7 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
                     </div>
                   </Transition.Child>
                   {/* Sidebar component, swap this element with another sidebar if you like */}
-                  <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
+      {/* <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
                     <div className="flex h-16 shrink-0 items-center">
                       <img
                         className="h-8 w-auto"
@@ -178,12 +163,12 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
               </Transition.Child>
             </div>
           </Dialog>
-        </Transition.Root>
+        </Transition.Root> */}
 
-        {/* Static sidebar for desktop */}
-        <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-          {/* Sidebar component, swap this element with another sidebar if you like */}
-          <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
+      {/* Static sidebar for desktop */}
+      {/* <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col"> */}
+      {/* Sidebar component, swap this element with another sidebar if you like */}
+      {/* <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6 pb-4">
             <div className="flex h-16 shrink-0 items-center">
               <img
                 className="h-8 w-auto"
@@ -248,10 +233,10 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
             >
               <span className="sr-only">Open sidebar</span>
               <Bars3Icon className="h-6 w-6" aria-hidden="true" />
-            </button>
+            </button> */}
 
-            {/* Separator */}
-            <div
+      {/* Separator */}
+      {/* <div
               className="h-6 w-px bg-gray-200 lg:hidden"
               aria-hidden="true"
             />
@@ -280,16 +265,16 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
                 >
                   <span className="sr-only">View notifications</span>
                   <BellIcon className="h-6 w-6" aria-hidden="true" />
-                </button>
+                </button> */}
 
-                {/* Separator */}
-                <div
+      {/* Separator */}
+      {/* <div
                   className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200"
                   aria-hidden="true"
-                />
+                /> */}
 
-                {/* Profile dropdown */}
-                <Menu as="div" className="relative">
+      {/* Profile dropdown */}
+      {/* <Menu as="div" className="relative">
                   <div className="px-6 ">
                     <UserButton />
                   </div>
@@ -329,7 +314,7 @@ export default function OrgLayout({ children }: { children: React.ReactNode }) {
             <div className="px-4 sm:px-6 lg:px-8">{children}</div>
           </main>
         </div>
-      </div>
+      </div> */}
     </>
   )
 }
