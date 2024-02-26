@@ -9,7 +9,6 @@ const MarketplacePage = async () => {
     return blobs
   }
   const images = await allImages()
-  console.log('IMAGES', images)
   const employees = await fetchMarketplaceEmployees()
   return (
     <UserMarketplaceList users={employees} companyImage={images.blobs[1].url} />

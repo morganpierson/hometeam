@@ -6,6 +6,7 @@ import {
   FolderIcon,
   HomeIcon,
   UsersIcon,
+  BuildingStorefrontIcon,
 } from '@heroicons/react/24/outline'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
@@ -25,34 +26,35 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function SideBarNav({ children }) {
+export default function SideBarNav({ children, orgData, user }) {
   const pathname = usePathname()
   console.log('PATHNAME', pathname)
   // const user = await getUserByClerkID()
 
   // const orgData = await fetchOrgData()
-  // console.log('ORG DATA', orgData)
+  console.log('ORG DATA', orgData)
+
   const navigation = [
-    { name: 'Inbox', href: '#', icon: HomeIcon, count: '5', current: true },
     {
-      name: 'Team Org',
-      href: `/org/}`,
-      icon: UsersIcon,
-      current: false,
+      name: 'Inbox',
+      href: '/inbox',
+      icon: HomeIcon,
+      count: '5',
     },
     {
-      name: 'Projects',
-      href: `/org/projects`,
+      name: 'Team Org',
+      href: `/org/${orgData.id}`,
+      icon: UsersIcon,
+    },
+    {
+      name: 'My Candidates',
+      href: `/candidates`,
       icon: FolderIcon,
-
-      current: false,
     },
     {
       name: 'Marketplace',
       href: '/marketplace',
-      icon: CalendarIcon,
-
-      current: false,
+      icon: BuildingStorefrontIcon,
     },
   ]
 
@@ -74,11 +76,14 @@ export default function SideBarNav({ children }) {
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className={classNames(
-                        item.current
-                          ? 'bg-gray-50 text-indigo-600'
-                          : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50',
-                        'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                      className={clsx(
+                        'text-gray-700 hover:text-indigo-600 hover:bg-gray-50 group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold',
+
+                        {
+                          'bg-gray-50 text-indigo-600': pathname.includes(
+                            item.href
+                          ),
+                        }
                       )}
                     >
                       <item.icon
@@ -104,43 +109,11 @@ export default function SideBarNav({ children }) {
                 ))}
               </ul>
             </li>
-            {/* <li>
-              <div className="text-xs font-semibold leading-6 text-gray-400">
-                Your teams
-              </div>
-              <ul role="list" className="-mx-2 mt-2 space-y-1">
-                {teams.map((team) => (
-                  <li key={team.name}>
-                    <a
-                      href={team.href}
-                      className={classNames(
-                        team.current
-                          ? 'bg-gray-50 text-indigo-600'
-                          : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50',
-                        'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                      )}
-                    >
-                      <span
-                        className={classNames(
-                          team.current
-                            ? 'text-indigo-600 border-indigo-600'
-                            : 'text-gray-400 border-gray-200 group-hover:border-indigo-600 group-hover:text-indigo-600',
-                          'flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border text-[0.625rem] font-medium bg-white'
-                        )}
-                      >
-                        {team.initial}
-                      </span>
-                      <span className="truncate">{team.name}</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </li> */}
-            <li className="mt-24 flex items-center">
-              <UserButton afterSignOutUrl="/" />{' '}
-              {/* <span className="ml-2 font-medium">{user.name}</span> */}
-            </li>
           </ul>
+          <div className="flex mb-12 items-center justify-start gap-2">
+            <UserButton afterSignOutUrl="/" />{' '}
+            <p className="font-medium">{user.name}</p>
+          </div>
         </nav>
       </div>
       <main className="py-10 col-span-5 px-6">

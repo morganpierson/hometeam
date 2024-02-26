@@ -13,10 +13,11 @@ model User {
   id                      String            @id @default(uuid())
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
-  clerkId                 String            @unique
+  clerkId                 String?            @unique
   email                   String?           @unique
   isAdmin                 Boolean?
-  name                    String?
+  firstName                   String? 
+  lastName                    String?
   role                    String?
   employmentStart         DateTime?
   employmentEnd           DateTime?
@@ -50,16 +51,17 @@ model AcquisitionOffer {
 
 //Company = Company under which many Users & Teams work. Companies create AcquisitionOffers
 model Company {
-  id         String     @id @default(uuid())
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  name       String
-  size       String
-  employees  User[]
-  industries Industry[]
-  teams      Team[]
-  projects   Project[]
-  logo       String?
+  id                String             @id @default(uuid())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  name              String
+  size              String
+  employees         User[]         
+  industries        Industry[]
+  teams             Team[]
+  projects          Project[]
+  logo              String?
+  website           String?
 }
 
 //Teams are subset of Company. Teams produce projects with ICs

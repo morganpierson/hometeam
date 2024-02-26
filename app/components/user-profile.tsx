@@ -3,16 +3,17 @@ import { PencilSquareIcon } from '@heroicons/react/20/solid'
 import { ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 import React, { useState, useOptimistic, useRef } from 'react'
 import { useFormState, useFormStatus } from 'react-dom'
-import { updateUserInfo } from '@/utils/actions'
+import { createNewUser, updateUserInfo } from '@/utils/actions'
 import { updateUserProfile } from '@/utils/api'
 import SelectDropdown from './select-dropdown'
 
-const UserProfile = ({ user }) => {
+const UserProfile = ({ user, org }) => {
   console.log('USER PROFILE', user)
 
   const [isEditing, setIsEditing] = useState(false)
+  const [tempImage, setTempImage] = useState('')
 
-  const [state, formAction] = useFormState(updateUserInfo, {
+  const [state, formAction] = useFormState(createNewUser, {
     name: user.name,
     email: user.email,
     availableForAcquisition: user.availableForAcquisition,
@@ -26,18 +27,6 @@ const UserProfile = ({ user }) => {
     })
   }
 
-  // const getUserData = async () => {
-  //   const users = await prisma.user.findUnique({
-  //     where: {
-  //       id: user.id,
-  //     },
-  //     include: {
-  //       company: true,
-  //     },
-  //   })
-
-  //   return users
-  // }
   const options = ['Requesting', 'Offering']
 
   const [optimisticState, addOptimistic] = useOptimistic(
@@ -58,7 +47,6 @@ const UserProfile = ({ user }) => {
         action={async (formData) => {
           addOptimistic(formData)
           setIsEditing(!isEditing)
-          console.log('STATUS', status)
           await formAction(formData)
         }}
         ref={ref}
@@ -73,7 +61,7 @@ const UserProfile = ({ user }) => {
             }
           />
         </div> */}
-        <input type="hidden" name="id" value={user.id} id="id" />
+        <input type="hidden" name="orgId" value={org.id} id="orgId" />
         <div className="px-4 sm:px-0 flex">
           {/* <EditUserModal open={open} setOpen={setOpen} user={user} /> */}
           <img src={user.profileImage} className="rounded-full h-48 w-48" />

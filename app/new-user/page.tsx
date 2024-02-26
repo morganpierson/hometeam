@@ -18,7 +18,7 @@ const createNewUser = async () => {
         profileImage: user?.imageUrl,
       },
     })
-    redirect('/org/onboarding')
+    redirect('/onboarding')
   } else {
     const userOrg = await prisma.company.findFirst({
       where: {

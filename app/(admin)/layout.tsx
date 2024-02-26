@@ -13,9 +13,9 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
-import { UserButton } from '@clerk/nextjs'
 import SideBarNav from '@/app/components/side-bar-nav'
-
+import { fetchOrgData } from '@/utils/actions'
+import { getUserByClerkID } from '@/utils/auth'
 const navigation = [
   { name: 'Inbox', href: '#', icon: HomeIcon, current: true },
   { name: 'Team Org', href: '/org/hometeam', icon: UsersIcon, current: false },
@@ -44,12 +44,18 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function OrgLayout({ children }: { children: React.ReactNode }) {
+export default async function OrgLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   // const [sidebarOpen, setSidebarOpen] = useState(false)
+  const user = await getUserByClerkID()
+  const orgData = await fetchOrgData()
 
   return (
     <>
-      <SideBarNav children={children} />
+      <SideBarNav children={children} orgData={orgData} user={user} />
 
       {/* <div>
         <Transition.Root show={sidebarOpen} as={Fragment}>

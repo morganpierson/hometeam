@@ -2,8 +2,9 @@
 
 import { fetchUserProfile } from '@/utils/api'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
-const UserCard = ({ teamMember }) => {
+const UserCard = ({ teamMember, placeholderImage }) => {
   const router = useRouter()
   const handleOnClick = async () => {
     //call fetchUserProfile api util method to call api GET request which fetches user profile info to pass to user profile page
@@ -12,12 +13,15 @@ const UserCard = ({ teamMember }) => {
   }
   return (
     <span className="mr-10 mt-4 flex flex-col justify-center items-center">
-      <img
-        src={teamMember.profileImage || ''}
-        className="h-24 w-24 rounded-full drop-shadow-lg hover:drop-shadow-none hover:cursor-pointer"
+      <Image
+        src={teamMember.profileImage || placeholderImage}
+        width={96}
+        height={96}
+        className="h-24 w-24 rounded-full mb-2 drop-shadow-lg hover:drop-shadow-none hover:cursor-pointer"
         onClick={handleOnClick}
+        alt="user profile image"
       />
-      {teamMember.name}
+      {teamMember.firstName} {teamMember.lastName ? teamMember.lastName : ''}
     </span>
   )
 }

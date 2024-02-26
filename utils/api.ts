@@ -52,3 +52,19 @@ export const createNewOrg = async (formData) => {
     throw new Error('Something went wrong on API server!')
   }
 }
+
+export const deleteUserProfile = async (id, orgId) => {
+  const res = await fetch(
+    new Request(createURL(`/api/user/${id}`), {
+      method: 'DELETE',
+      body: JSON.stringify({ orgId }),
+    })
+  )
+  if (res.ok) {
+    const data = await res.json()
+    console.log(data.data)
+    return data.data
+  } else {
+    throw new Error('Something went wrong on API server!')
+  }
+}

@@ -4,8 +4,96 @@ import { redirect } from 'next/navigation'
 import { prisma } from './db'
 import { getUserByClerkID } from './auth'
 import { revalidatePath } from 'next/cache'
-import { get } from 'http'
+import { put } from '@vercel/blob'
 
+//USER ACTIONS
+
+//CREATE NEW USER WITHIN EXISTING ORG
+export const createNewUser = async (
+  // prevState: {
+  //   firstName: string
+  //   lastName: string
+  //   email: string
+  //   availableForAcquisition: boolean
+  //   profileImage: string
+  //   resume: string
+  //   orgId: string
+  //   team: string
+  // },
+  formData: FormData
+) => {
+  const imageFile = (await formData.get('profileImage')) as File
+  const resumeFile = (await formData.get('resume')) as File
+
+  try {
+    console.log('CREATING NEW USER')
+    const imageBlob = await put(`profileImages/${imageFile.name}`, imageFile, {
+      access: 'public',
+    })
+
+    const resumeBlob = await put(`resumes/${resumeFile.name}`, resumeFile, {
+      access: 'public',
+    })
+
+    const userTeam = await prisma.team.findFirst({
+      where: {
+        name: formData.get('team')?.toString(),
+        companyId: formData.get('orgId')?.toString(),
+      },
+    })
+
+    const userOrg = await prisma.company.findFirst({
+      where: {
+        id: formData.get('orgId')?.toString(),
+      },
+    })
+
+    const user = await prisma.user.create({
+      data: {
+        firstName: formData.get('firstName')?.toString(),
+        lastName: formData.get('lastName')?.toString(),
+        email: formData.get('email')?.toString(),
+        availableForAcquisition: false,
+
+        profileImage: imageBlob.url,
+        resume: resumeBlob.url,
+        role: formData.get('role')?.toString(),
+        team: {
+          connect: {
+            id: userTeam?.id,
+          },
+        },
+        company: {
+          connect: {
+            id: userOrg?.id,
+          },
+        },
+      },
+    })
+    console.log('USER', user)
+    revalidatePath(`/org/${formData.get('orgId')?.toString()}/edit`)
+  } catch (e) {
+    console.log('FUUUUCKKKK ERRORRRR')
+    console.error('ERROR', e)
+  }
+}
+
+//FETCH USERS TO DISPLAY ON MARKETPLACE PAGE
+export const fetchMarketplaceEmployees = async () => {
+  const availableUsers = await prisma.user.findMany({
+    where: {
+      availableForAcquisition: true,
+    },
+    include: {
+      company: true,
+      acquisitionOffer: true,
+      team: true,
+    },
+  })
+  return availableUsers
+}
+
+//UPDATE USER INFO
 export const updateUserInfo = async (
   prevState: {
     email: string
@@ -13,7 +101,6 @@ export const updateUserInfo = async (
   },
   formData: FormData
 ) => {
-  console.log('FORM DATA', formData)
   const offerAmount = parseInt(formData.get('offerAmount')?.toString() || '0')
   const acquisitionOffer = await prisma.acquisitionOffer.upsert({
     where: { userId: formData.get('id')?.toString() },
@@ -48,6 +135,28 @@ export const updateUserInfo = async (
   revalidatePath(`/user/${formData.get('id')?.toString}`)
 }
 
+//COMPANY (ORG) ACTIONS
+export const updateOrgInfo = async (
+  prevState: {
+    name: string
+    website: string
+  },
+  formData: FormData
+) => {
+  console.log('UPDATE ORG FORM DATA ', formData)
+  const updatedOrg = await prisma.company.update({
+    where: {
+      id: formData.get('id')?.toString(),
+    },
+    data: {
+      name: formData.get('name')?.toString() || prevState.name,
+      website: formData.get('website')?.toString() || prevState.website,
+    },
+  })
+
+  revalidatePath(`/org/${formData.get('id')?.toString}`)
+}
+
 export const createNewOrg = async (
   prevState: {
     name: string
@@ -57,10 +166,79 @@ export const createNewOrg = async (
   formData: FormData
 ) => {
   const user = await getUserByClerkID()
+
   const newCompany = await prisma.company.create({
     data: {
       name: formData.get('orgName'),
       size: formData.get('orgSize'),
+    },
+  })
+
+  const updatedCompany = await prisma.company.update({
+    where: {
+      id: newCompany.id,
+    },
+    data: {
+      employees: {
+        create: [
+          {
+            firstName: 'John',
+            lastName: 'Doe',
+            team: {
+              create: {
+                name: 'Product',
+                company: {
+                  connect: {
+                    id: newCompany.id,
+                  },
+                },
+              },
+            },
+          },
+          {
+            firstName: 'Jane',
+            lastName: 'Doe',
+            team: {
+              create: {
+                name: 'Engineering',
+                company: {
+                  connect: {
+                    id: newCompany.id,
+                  },
+                },
+              },
+            },
+          },
+          {
+            firstName: 'Bob',
+            lastName: 'Doe',
+            team: {
+              create: {
+                name: 'Marketing',
+                company: {
+                  connect: {
+                    id: newCompany.id,
+                  },
+                },
+              },
+            },
+          },
+          {
+            firstName: 'Sally',
+            lastName: 'Doe',
+            team: {
+              create: {
+                name: 'Sales',
+                company: {
+                  connect: {
+                    id: newCompany.id,
+                  },
+                },
+              },
+            },
+          },
+        ],
+      },
     },
   })
 
@@ -77,7 +255,7 @@ export const createNewOrg = async (
     data: {
       company: {
         connect: {
-          id: newCompany.id,
+          id: updatedCompany.id,
         },
       },
     },
@@ -85,7 +263,7 @@ export const createNewOrg = async (
 
   await prisma.company.update({
     where: {
-      id: newCompany.id,
+      id: updatedCompany.id,
     },
     data: {
       industries: {
@@ -112,20 +290,6 @@ export const fetchOrgData = async () => {
   })
 
   return orgData
-}
-
-export const fetchMarketplaceEmployees = async () => {
-  const availableUsers = await prisma.user.findMany({
-    where: {
-      availableForAcquisition: true,
-    },
-    include: {
-      company: true,
-      acquisitionOffer: true,
-      team: true,
-    },
-  })
-  return availableUsers
 }
 
 export const fetchProjectData = async (id: string) => {

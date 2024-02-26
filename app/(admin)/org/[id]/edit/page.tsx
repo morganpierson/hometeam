@@ -1,10 +1,6 @@
+import EditOrgForm from '@/app/components/edit-org-form'
 import { getUserByClerkID } from '@/utils/auth'
 import { prisma } from '@/utils/db'
-import { clerkClient } from '@clerk/nextjs'
-import Link from 'next/link'
-import UserCard from '@/app/components/user-card'
-import { PlusIcon } from '@heroicons/react/16/solid'
-import TeamListPage from '@/app/components/team-list-page'
 
 const getOrgData = async () => {
   const user = await getUserByClerkID()
@@ -14,6 +10,7 @@ const getOrgData = async () => {
     },
     include: {
       employees: true,
+      teams: true,
     },
   })
 
@@ -43,21 +40,20 @@ const getTeamList = async () => {
   })
   return sortedTeams
 }
-
-const getUserData = async () => {
-  const users = await prisma.user.findMany({
-    include: {
-      team: true,
-    },
-  })
-
-  return users
-}
-
-const OrgDetailsPage = async ({ params }) => {
+const EditOrgPage = async () => {
   const orgData = await getOrgData()
   const teamData = await getTeamList()
-  return <TeamListPage teamData={teamData} orgData={orgData} />
+  console.log('TEAM DATA', teamData)
+  return (
+    <div>
+      <EditOrgForm
+        org={orgData}
+        teamData={teamData}
+        saveTeam={''}
+        cancelSave={''}
+      />
+    </div>
+  )
 }
 
-export default OrgDetailsPage
+export default EditOrgPage
