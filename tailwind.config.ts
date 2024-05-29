@@ -19,7 +19,7 @@ const config: Config = {
     //   white: '#ffffff',
     // },
     fontFamily: {
-      sans: ['inter'],
+      sans: ['Monteserrat', 'inter'],
     },
     // extend: {
     //   blur: {

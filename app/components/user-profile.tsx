@@ -1,19 +1,21 @@
 'use client'
 import { PencilSquareIcon } from '@heroicons/react/20/solid'
-import { ArrowDownTrayIcon } from '@heroicons/react/24/outline'
+import { ArrowDownTrayIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import React, { useState, useOptimistic, useRef } from 'react'
 import { useFormState, useFormStatus } from 'react-dom'
 import { createNewUser, updateUserInfo } from '@/utils/actions'
 import { updateUserProfile } from '@/utils/api'
 import SelectDropdown from './select-dropdown'
+import Image from 'next/image'
 
-const UserProfile = ({ user, org }) => {
+const UserProfile = ({ user, org, isOnMarketplace = true }) => {
   console.log('USER PROFILE', user)
+  console.log('ORG', org)
 
   const [isEditing, setIsEditing] = useState(false)
   const [tempImage, setTempImage] = useState('')
 
-  const [state, formAction] = useFormState(createNewUser, {
+  const [state, formAction] = useFormState(updateUserInfo, {
     name: user.name,
     email: user.email,
     availableForAcquisition: user.availableForAcquisition,
@@ -40,7 +42,6 @@ const UserProfile = ({ user, org }) => {
     ]
   )
   const ref = useRef(null)
-  console.log('ACQ OFFER', user.acquisitionOffer)
   return (
     <>
       <form
@@ -52,22 +53,21 @@ const UserProfile = ({ user, org }) => {
         ref={ref}
         className="ml-0 col-span-3"
       >
-        {/* <div className="flex justify-end align-top">
-          <ToggleButton
-            header={
-              user.availableForAcquisition
-                ? 'Available for Acquisition'
-                : 'Unavailable for Acquisition'
-            }
-          />
-        </div> */}
-        <input type="hidden" name="orgId" value={org.id} id="orgId" />
+        <input type="hidden" name="orgId" value={org} id="orgId" />
+        <input type="hidden" name="id" value={user.id} id="id" />
         <div className="px-4 sm:px-0 flex">
           {/* <EditUserModal open={open} setOpen={setOpen} user={user} /> */}
-          <img src={user.profileImage} className="rounded-full h-48 w-48" />
+          {user.profileImage ? (
+            <Image src={user.profileImage} height={96} width={96} alt="" />
+          ) : (
+            <UserCircleIcon
+              className="h-24 w-24 text-gray-300"
+              aria-hidden="true"
+            />
+          )}
           <div className="flex flex-col justify-center ml-6">
             <h1 className="font-semibold leading-7 text-gray-900 text-2xl">
-              {user.name}
+              {user.firstName} {user.lastName}
             </h1>
             <p className="mt-1 max-w-2xl  leading-6 text-gray-500 text-lg">
               {user.role}
@@ -76,42 +76,45 @@ const UserProfile = ({ user, org }) => {
               <div className="flex text-indigo-600 hover:text-indigo-500 mr-4">
                 <ArrowDownTrayIcon className="h-5 w-5  " aria-hidden="true" />
                 <div className="ml-2 flex min-w-0 flex-1 gap-2">
-                  <span className="font-medium ">
-                    resume_product_manager.pdf
-                  </span>
+                  <a className="font-medium " href={user.resume}>
+                    {user.firstName} {user.lastName}'s resume
+                  </a>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div className="flex justify-end">
-          {!isEditing ? (
-            <button
-              type="button"
-              className="rounded-md bg-white font-medium text-indigo-600 hover:text-indigo-500 flex"
-              onClick={() => setIsEditing(!isEditing)}
-            >
-              <PencilSquareIcon className="h-5 w-5 mr-2" aria-hidden="true" />
-              Edit
-            </button>
-          ) : (
-            <div>
-              <button
-                type="submit"
-                className=" rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-              >
-                {status.pending ? 'Updating...' : 'Save Changes'}
-              </button>
+        {!isOnMarketplace && (
+          <div className="flex justify-end">
+            {!isEditing ? (
               <button
                 type="button"
-                className="rounded-md ml-6 bg-white px-3 py-2 text-sm font-semibold text-red-900 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50"
+                className="rounded-md bg-white font-medium text-indigo-600 hover:text-indigo-500 flex"
                 onClick={() => setIsEditing(!isEditing)}
               >
-                Cancel
+                <PencilSquareIcon className="h-5 w-5 mr-2" aria-hidden="true" />
+                Edit
               </button>
-            </div>
-          )}
-        </div>
+            ) : (
+              <div>
+                <button
+                  type="submit"
+                  className=" rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                >
+                  {status.pending ? 'Updating...' : 'Save Changes'}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-md ml-6 bg-white px-3 py-2 text-sm font-semibold text-red-900 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50"
+                  onClick={() => setIsEditing(!isEditing)}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="mt-6 border-t border-gray-100">
           <dl className="divide-y divide-gray-100">
             <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -144,16 +147,22 @@ const UserProfile = ({ user, org }) => {
                     {user.company.name} is{' '}
                     <strong>{user.acquisitionOffer.offerType}</strong> $
                     {`${user.acquisitionOffer.amount}`} for the acquisition of{' '}
-                    {user.name}
+                    {user.firstName} {user.lastName}
                   </span>
                 </dd>
               ) : isEditing ? (
                 <div className="flex items-center w-full">
-                  <SelectDropdown
+                  {/* <SelectDropdown
                     options={options}
                     id={'offerType'}
                     name={'offerType'}
-                  />
+                    className={undefined}
+                  /> */}
+                  <select name="offerType" id="offerType">
+                    {options.map((option) => (
+                      <option key={option}>{option}</option>
+                    ))}
+                  </select>
                   <span className="ml-4">
                     $
                     <input
@@ -169,7 +178,7 @@ const UserProfile = ({ user, org }) => {
                 <dd className="mt-1 flex text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                   <span className="flex-grow">
                     {user.company.name} has not yet created an offer for{' '}
-                    {user.name}
+                    {user.firstName} {user.lastName}
                     's acquisition
                   </span>
                 </dd>
@@ -264,18 +273,20 @@ const UserProfile = ({ user, org }) => {
           </dl>
         </div>
       </form>
-      <div className="flex justify-end mt-6 mb-8">
-        <button
-          type="button"
-          disabled={user.acquisitionOffer === null}
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 disabled:shadow-none"
-          onClick={listEmployee}
-        >
-          {user.availableForAcquisition
-            ? 'Unlist from Marketplace'
-            : 'List on Marketplace'}
-        </button>
-      </div>
+      {!isOnMarketplace && (
+        <div className="flex justify-end mt-6 mb-8">
+          <button
+            type="button"
+            disabled={user.acquisitionOffer === null}
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 disabled:shadow-none"
+            onClick={listEmployee}
+          >
+            {user.availableForAcquisition
+              ? 'Unlist from Marketplace'
+              : 'List on Marketplace'}
+          </button>
+        </div>
+      )}
     </>
   )
 }

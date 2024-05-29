@@ -46,7 +46,12 @@ export const DELETE = async (
     where: {
       id: params.id,
     },
+    include: {
+      acquisitionOffer: true,
+    },
   })
+
+  console.log('CURRENT USER', currentUser)
 
   if (currentUser.acquisitionOffer) {
     await prisma.acquisitionOffer.delete({

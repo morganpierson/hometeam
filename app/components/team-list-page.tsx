@@ -4,21 +4,42 @@ import Link from 'next/link'
 import UserCard from './user-card'
 import { useState } from 'react'
 import EditTeamModal from './edit-team-modal'
-import { PlusIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import avatar1 from '@/public/avatar_1.svg'
 import avatar2 from '@/public/avatar_2.svg'
 import avatar3 from '@/public/avatar_3.svg'
 import avatar4 from '@/public/avatar_4.svg'
+import AddEmployeeModal from './add-employee-modal'
+import Image from 'next/image'
 
 const placeholderAvatars = [avatar1, avatar2, avatar3, avatar4]
 
 const TeamListPage = ({ teamData, mockTeamData, orgData }) => {
   const [open, setOpen] = useState(false)
-  console.log('TEAM LIST PAGE DATA ', teamData[0].members)
   return (
     <div className="ml-12 mt-12">
-      <header className="flex gap-4 items-center justify-between">
-        <h1 className="text-3xl font-sans tracking-widest font-semibold">
+      <AddEmployeeModal
+        orgData={orgData}
+        teamData={teamData}
+        open={open}
+        setOpen={setOpen}
+      />
+      <header className="flex gap-4 items-center justify-between font-sans">
+        <h1 className="text-3xl tracking-widest font-semibold font-sans flex items-center gap-4">
+          {orgData.logo ? (
+            <Image
+              src={orgData.logo}
+              height={80}
+              width={80}
+              alt={`${orgData.name} logo`}
+              className="rounded-full min-h-20 min-w-20"
+            />
+          ) : (
+            <UserCircleIcon
+              className="h-24 w-24 text-gray-300"
+              aria-hidden="true"
+            />
+          )}
           {orgData.name.toUpperCase()}
         </h1>
         <a
@@ -68,6 +89,7 @@ const TeamListPage = ({ teamData, mockTeamData, orgData }) => {
                 <button
                   type="button"
                   className="rounded-full bg-white border border-indigo-600 text-indigo-600 p-2 shadow-sm hover:bg-indigo-500 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  onClick={() => setOpen(true)}
                 >
                   <PlusIcon className="h-5 w-5" aria-hidden="true" />
                 </button>

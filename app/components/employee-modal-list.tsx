@@ -23,7 +23,7 @@ export default function EmployeeModalList({ teamData, org }) {
       className="divide-y divide-gray-100 overflow-scroll max-h-80"
     >
       {org.employees.map((person, index) => (
-        <li key={person.email} className="flex justify-between gap-x-6 py-5">
+        <li key={person.id} className="flex justify-between gap-x-6 py-5">
           <div className="flex min-w-0 gap-x-4">
             <Image
               className="h-12 w-12 flex-none rounded-full bg-gray-50"

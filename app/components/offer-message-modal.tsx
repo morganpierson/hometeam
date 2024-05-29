@@ -1,9 +1,16 @@
 import { Fragment, useRef, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { CheckIcon } from '@heroicons/react/24/outline'
-import NewTeamForm from './new-team-form'
+import OfferMessageForm from './offer-message-form'
 
-export default function AddTeamModal({ open, setOpen, teamData, orgData }) {
+export default function OfferMessageModal({
+  open,
+  setOpen,
+  candidate,
+  company,
+}) {
+  // const [open, setOpen] = useState(true)
+
   const cancelButtonRef = useRef(null)
 
   return (
@@ -38,11 +45,10 @@ export default function AddTeamModal({ open, setOpen, teamData, orgData }) {
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                <NewTeamForm
-                  teamData={teamData}
-                  open={open}
+                <OfferMessageForm
                   setOpen={setOpen}
-                  orgData={orgData}
+                  candidate={candidate}
+                  company={company}
                 />
               </Dialog.Panel>
             </Transition.Child>

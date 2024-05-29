@@ -2,7 +2,7 @@ import { EnvelopeIcon, PhoneIcon } from '@heroicons/react/20/solid'
 import UserMarketplaceCard from './user-marketplace-card'
 import SearchBar from './search-bar'
 
-export default function UserList({ users, companyImage }) {
+export default async function UserList({ users }) {
   return (
     <div className="px-16">
       <SearchBar />
@@ -12,7 +12,10 @@ export default function UserList({ users, companyImage }) {
             key={person.email}
             className="flex flex-col divide-y divide-gray-200 rounded-lg bg-white text-center shadow col-span-1"
           >
-            <UserMarketplaceCard user={person} companyImage={companyImage} />
+            <UserMarketplaceCard
+              user={person}
+              companyImage={person.company.logo}
+            />
           </li>
         ))}
       </ul>

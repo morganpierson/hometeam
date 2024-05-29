@@ -1,11 +1,11 @@
-generator client {
-  provider = "prisma-client-js"
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  directUrl         = env("DIRECT_URL")
 }
 
-datasource db {
-  provider     = "mysql"
-  url          = env("DATABASE_URL")
-  relationMode = "prisma"
+generator client {
+  provider = "prisma-client-js"
 }
 
 //User = IC within a team including admin
@@ -16,8 +16,8 @@ model User {
   clerkId                 String?            @unique
   email                   String?           @unique
   isAdmin                 Boolean?
-  firstName                   String? 
-  lastName                    String?
+  firstName                String? 
+  lastName                String?
   role                    String?
   employmentStart         DateTime?
   employmentEnd           DateTime?
@@ -33,21 +33,58 @@ model User {
   acquisitionOffer        AcquisitionOffer?
   company                 Company?          @relation(fields: [companyId], references: [id])
   projects               Project[]         @relation("ProjectToUser")
+  interestedCompanies    Company[]         @relation("CompanyCandidates")
+  
 
   @@index([companyId])
   @@index([teamId])
 }
 
-//AqcquisitionOffer = terms under which a company is offering up an employee or willing to release an employee
+//AcquisitionOffer = terms under which a company is offering up an employee or willing to release an employee
 model AcquisitionOffer {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userId    String   @unique
   amount    Int? @default(0)
+  offeringCompany Company @relation(fields: [offeringCompanyId], references: [id])
+  offeringCompanyId String
   offerType String?
   user      User?    @relation(fields: [userId], references: [id])
+  messageThread MessageThread? @relation("MessageThreadMessages")
+
+  @@index([offeringCompanyId])
 }
+
+//MessageThread = thread of messages between two companies regarding acquisition offer
+model MessageThread {
+  id String @id @default(uuid())
+  messages OfferMessage[] @relation("MessageThreadMessages")
+  offer     AcquisitionOffer    @relation("MessageThreadMessages", fields: [offerId], references: [id])
+  offerId String @unique
+  companies Company[] @relation("MessageThreadCompanies")
+  
+  
+}
+
+//OfferMessage = Message from one company to another regarding the acquisition of an employee
+model OfferMessage {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sendingCompanyId    String
+  receivingCompanyId String
+  message   String
+  sendingCompany      Company    @relation("MessageFromCompany", fields: [sendingCompanyId], references: [id])
+  receivingCompany Company @relation("MessageToCompany", fields: [receivingCompanyId], references: [id])
+    thread  MessageThread @relation("MessageThreadMessages", fields: [threadId], references: [id])
+    threadId String
+  
+    @@index([receivingCompanyId]) 
+    @@index([sendingCompanyId])
+    @@index([threadId])
+}
+
 
 //Company = Company under which many Users & Teams work. Companies create AcquisitionOffers
 model Company {
@@ -62,7 +99,14 @@ model Company {
   projects          Project[]
   logo              String?
   website           String?
+  savedCandidates   User[]             @relation("CompanyCandidates")
+  sentMessages OfferMessage[] @relation("MessageFromCompany")
+  receivedMessage OfferMessage[] @relation("MessageToCompany")
+  messageThreads MessageThread[] @relation("MessageThreadCompanies")
+  acquisitionOffers AcquisitionOffer[]
 }
+
+
 
 //Teams are subset of Company. Teams produce projects with ICs
 model Team {
@@ -74,7 +118,7 @@ model Team {
   members   User[]
   projects  Project[]
   company   Company?  @relation(fields: [companyId], references: [id])
-
+  logo     String?
   @@index([companyId])
 }
 

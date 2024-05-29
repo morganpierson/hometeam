@@ -22,22 +22,28 @@ const teams = [
   { id: 3, name: 'Workcation', href: '#', initial: 'W', current: false },
 ]
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
-
-export default function SideBarNav({ children, orgData, user }) {
+export default function SideBarNav({
+  children,
+  orgData,
+  user,
+}: {
+  children: any
+  orgData: any
+  user: any
+}) {
   const pathname = usePathname()
   console.log('PATHNAME', pathname)
-  // const user = await getUserByClerkID()
+  //const user = await getUserByClerkID()
 
-  // const orgData = await fetchOrgData()
-  console.log('ORG DATA', orgData)
+  //const orgData = await fetchOrgData()
+  console.log('SIDE BAR ORG DATA', orgData)
+
+  console.log('SIDE BAR NAV USER', user)
 
   const navigation = [
     {
       name: 'Inbox',
-      href: '/inbox',
+      href: `/org/${orgData.id}/inbox`,
       icon: HomeIcon,
       count: '5',
     },
@@ -48,7 +54,7 @@ export default function SideBarNav({ children, orgData, user }) {
     },
     {
       name: 'My Candidates',
-      href: `/candidates`,
+      href: `/org/${orgData.id}/candidates`,
       icon: FolderIcon,
     },
     {
@@ -87,12 +93,9 @@ export default function SideBarNav({ children, orgData, user }) {
                       )}
                     >
                       <item.icon
-                        className={classNames(
-                          item.current
-                            ? 'text-indigo-600'
-                            : 'text-gray-400 group-hover:text-indigo-600',
-                          'h-6 w-6 shrink-0'
-                        )}
+                        className={
+                          'text-gray-400 group-hover:text-indigo-600 h-6 w-6 shrink-0'
+                        }
                         aria-hidden="true"
                       />
                       {item.name}
@@ -112,7 +115,9 @@ export default function SideBarNav({ children, orgData, user }) {
           </ul>
           <div className="flex mb-12 items-center justify-start gap-2">
             <UserButton afterSignOutUrl="/" />{' '}
-            <p className="font-medium">{user.name}</p>
+            <p className="font-medium">
+              {user.firstName ? user.firstName : ''}
+            </p>
           </div>
         </nav>
       </div>

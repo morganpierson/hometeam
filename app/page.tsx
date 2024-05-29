@@ -2,8 +2,14 @@ import { auth } from '@clerk/nextjs'
 import Link from 'next/link'
 import { prisma } from '@/utils/db'
 
+import { createClient } from '@/utils/supabase/server'
+
 export default async function Home() {
   const { userId } = await auth()
+  console.log('USER ID ', userId)
+  const supabase = createClient()
+  const { data: industry } = await supabase.from('industry').select()
+
   let match
   let userOrg
   if (userId) {
@@ -32,6 +38,7 @@ export default async function Home() {
             get started
           </button>
         </Link>
+        {/* <pre className="text-white">{JSON.stringify(industry, null, 2)}</pre> */}
       </div>
     </div>
   )

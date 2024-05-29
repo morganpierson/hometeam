@@ -8,6 +8,7 @@ import TeamListPage from '@/app/components/team-list-page'
 
 const getOrgData = async () => {
   const user = await getUserByClerkID()
+  console.log('USER', user)
   const data = await prisma.company.findUniqueOrThrow({
     where: {
       id: user.companyId,

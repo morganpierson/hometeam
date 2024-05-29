@@ -10,6 +10,8 @@ import { upload } from '@vercel/blob/client'
 import { useState, useRef, useOptimistic } from 'react'
 import { useFormState, useFormStatus } from 'react-dom'
 import { createNewUser } from '@/utils/actions'
+import UploadImage from './upload-image'
+import FileUpload from './file-upload'
 
 export default function NewEmployeeForm({ teamData, orgData, open, setOpen }) {
   const [state, formAction] = useFormState(createNewUser, {
@@ -18,6 +20,7 @@ export default function NewEmployeeForm({ teamData, orgData, open, setOpen }) {
     availableForAcquisition: false,
     profileImage: '',
   })
+
   const [optimisticState, addOptimistic] = useOptimistic(
     state,
     // updateFn
@@ -28,11 +31,21 @@ export default function NewEmployeeForm({ teamData, orgData, open, setOpen }) {
       // with optimistic value
     ]
   )
+  function handleImageChange(e: any) {
+    console.log(e.target.files)
+    setImage(URL.createObjectURL(e.target.files[0]))
+  }
+  function handleResumeChange(e: any) {
+    console.log(e.target.files)
+    setResume(e.target.files[0])
+    console.log('RESUME ', resume)
+  }
   const cancelButtonRef = useRef(null)
   const ref = useRef(null)
   const inputFileRef = useRef<HTMLInputElement>(null)
   const [blob, setBlob] = useState<PutBlobResult | null>(null)
   const [image, setImage] = useState<string | null>(null)
+  const [resume, setResume] = useState<string | null>(null)
 
   return (
     <form action={createNewUser}>
@@ -55,10 +68,14 @@ export default function NewEmployeeForm({ teamData, orgData, open, setOpen }) {
                 Photo
               </label>
               <div className="mt-2 flex items-center gap-x-3">
-                <UserCircleIcon
-                  className="h-16 w-16 text-gray-300"
-                  aria-hidden="true"
-                />
+                {image ? (
+                  <img src={image} className="h-16 w-16 rounded-full" />
+                ) : (
+                  <UserCircleIcon
+                    className="h-16 w-16 text-gray-300"
+                    aria-hidden="true"
+                  />
+                )}
                 <label
                   htmlFor="profileImage"
                   className="relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:outline-none  hover:text-indigo-500"
@@ -69,9 +86,15 @@ export default function NewEmployeeForm({ teamData, orgData, open, setOpen }) {
                     name="profileImage"
                     type="file"
                     className="sr-only"
+                    onChange={handleImageChange}
                   />
                 </label>
               </div>
+              {/* <UploadImage
+                uploadText={'Upload'}
+                id={'profileImage'}
+                name={'profileImage'}
+              /> */}
             </div>
 
             <div className="col-span-full">
@@ -83,10 +106,14 @@ export default function NewEmployeeForm({ teamData, orgData, open, setOpen }) {
               </label>
               <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-6">
                 <div className="text-center">
-                  <ArrowDownTrayIcon
-                    className="mx-auto h-12 w-12 text-gray-300"
-                    aria-hidden="true"
-                  />
+                  {resume ? (
+                    <span className="font-bold">{resume.name}</span>
+                  ) : (
+                    <ArrowDownTrayIcon
+                      className="mx-auto h-12 w-12 text-gray-300"
+                      aria-hidden="true"
+                    />
+                  )}
                   <div className="mt-4 flex text-sm leading-6 text-gray-600">
                     <label
                       htmlFor="resume"
@@ -98,6 +125,7 @@ export default function NewEmployeeForm({ teamData, orgData, open, setOpen }) {
                         name="resume"
                         type="file"
                         className="sr-only"
+                        onChange={handleResumeChange}
                       />
                     </label>
                     <p className="pl-1">or drag and drop</p>

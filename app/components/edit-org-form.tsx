@@ -13,6 +13,7 @@ import OrgTeamList from './org-team-list'
 import { useRouter } from 'next/navigation'
 import AddEmployeeModal from './add-employee-modal'
 import AddTeamModal from './add-team-modal'
+import UploadImage from './upload-image'
 
 export default function EditOrgForm({
   org,
@@ -64,6 +65,7 @@ export default function EditOrgForm({
         open={openAddTeam}
         setOpen={setOpenAddTeam}
         teamData={teamData}
+        orgData={org}
       />
       <input hidden name="id" value={org.id} />
       <div className="h-24 flex items-center justify-end gap-x-6 sticky top-6 backdrop-blur-sm mt-0">
@@ -100,7 +102,7 @@ export default function EditOrgForm({
               >
                 Logo
               </label>
-              <div className="mt-2 flex items-center gap-x-3">
+              {/* <div className="mt-2 flex items-center gap-x-3">
                 <UserCircleIcon
                   className="h-16 w-16 text-gray-300"
                   aria-hidden="true"
@@ -111,7 +113,8 @@ export default function EditOrgForm({
                 >
                   Change
                 </button>
-              </div>
+              </div> */}
+              <UploadImage uploadText={'Upload'} id={'logo'} name={'logo'} />
             </div>
             <div className="sm:col-span-4">
               <label
