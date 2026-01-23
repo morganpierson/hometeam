@@ -1,19 +1,19 @@
 import { prisma } from '@/utils/db'
-import { auth, currentUser } from '@clerk/nextjs'
+import { currentUser } from '@clerk/nextjs'
 import { redirect } from 'next/navigation'
 
-const createNewUser = async () => {
+const createNewEmployee = async () => {
   const user = await currentUser()
 
   console.log('NEW USER', user)
-  const match = await prisma.user.findUnique({
+  const match = await prisma.employee.findUnique({
     where: {
       clerkId: user?.id as string,
     },
   })
 
   if (!match) {
-    const newUser = await prisma.user.create({
+    const newEmployee = await prisma.employee.create({
       data: {
         clerkId: user?.id,
         email: user?.emailAddresses[0].emailAddress,
@@ -22,18 +22,18 @@ const createNewUser = async () => {
     })
     redirect('/onboarding')
   } else {
-    const userOrg = await prisma.company.findFirst({
+    const employerOrg = await prisma.employer.findFirst({
       where: {
-        id: match.companyId,
+        id: match.employerId ?? undefined,
       },
     })
 
-    redirect(`/org/${userOrg?.id}`)
+    redirect(`/org/${employerOrg?.id}`)
   }
 }
 
 const NewUser = async () => {
-  await createNewUser()
+  await createNewEmployee()
   return <div>New User Page</div>
 }
 

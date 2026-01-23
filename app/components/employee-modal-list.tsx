@@ -2,21 +2,39 @@
 import { Fragment } from 'react'
 import { Menu, Transition } from '@headlessui/react'
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid'
-import { deleteUserProfile } from '@/utils/api'
+import { deleteEmployeeProfile } from '@/utils/api'
 import avatar1 from '@/public/avatar_1.svg'
 import avatar2 from '@/public/avatar_2.svg'
 import avatar3 from '@/public/avatar_3.svg'
 import avatar4 from '@/public/avatar_4.svg'
 import Image from 'next/image'
+import { TradeCategory } from '@prisma/client'
 
 const placeholderAvatars = [avatar1, avatar2, avatar3, avatar4]
 
-function classNames(...classes) {
+function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function EmployeeModalList({ teamData, org }) {
-  console.log('TEAM DATA', teamData)
+interface Employee {
+  id: string
+  firstName?: string | null
+  lastName?: string | null
+  email?: string | null
+  profileImage?: string | null
+  tradeCategory?: TradeCategory | null
+}
+
+interface Employer {
+  id: string
+  employees: Employee[]
+}
+
+interface EmployeeModalListProps {
+  org: Employer
+}
+
+export default function EmployeeModalList({ org }: EmployeeModalListProps) {
   return (
     <ul
       role="list"
@@ -30,7 +48,7 @@ export default function EmployeeModalList({ teamData, org }) {
               src={
                 person.profileImage
                   ? person.profileImage
-                  : placeholderAvatars[index]
+                  : placeholderAvatars[index % placeholderAvatars.length]
               }
               alt=""
               width={96}
@@ -39,12 +57,12 @@ export default function EmployeeModalList({ teamData, org }) {
             <div className="min-w-0 flex-auto">
               <div className="flex gap-1">
                 <p className="text-sm font-semibold leading-6 text-gray-900">
-                  <a href={person.href} className="hover:underline">
+                  <a href={`/org/user/${person.id}`} className="hover:underline">
                     {person.firstName}
                   </a>
                 </p>
                 <p className="text-sm font-semibold leading-6 text-gray-900">
-                  <a href={person.href} className="hover:underline">
+                  <a href={`/org/user/${person.id}`} className="hover:underline">
                     {person.lastName}
                   </a>
                 </p>
@@ -61,22 +79,15 @@ export default function EmployeeModalList({ teamData, org }) {
           </div>
           <div className="flex shrink-0 items-center gap-x-6">
             <div className="hidden sm:flex sm:flex-col sm:items-end">
-              <p className="text-sm leading-6 text-gray-900">{person.role}</p>
-              {person.lastSeen ? (
-                <p className="mt-1 text-xs leading-5 text-gray-500">
-                  Last seen{' '}
-                  <time dateTime={person.lastSeenDateTime}>
-                    {person.lastSeen}
-                  </time>
-                </p>
-              ) : (
-                <div className="mt-1 flex items-center gap-x-1.5">
-                  <div className="flex-none rounded-full bg-emerald-500/20 p-1">
-                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  </div>
-                  <p className="text-xs leading-5 text-gray-500">Online</p>
+              <p className="text-sm leading-6 text-gray-900">
+                {person.tradeCategory?.replace('_', ' ') || 'No trade assigned'}
+              </p>
+              <div className="mt-1 flex items-center gap-x-1.5">
+                <div className="flex-none rounded-full bg-emerald-500/20 p-1">
+                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 </div>
-              )}
+                <p className="text-xs leading-5 text-gray-500">Active</p>
+              </div>
             </div>
             <Menu as="div" className="relative flex-none">
               <Menu.Button className="-m-2.5 block p-2.5 text-gray-500 hover:text-gray-900">
@@ -98,12 +109,12 @@ export default function EmployeeModalList({ teamData, org }) {
                       <button
                         className={classNames(
                           active ? 'bg-gray-50' : '',
-                          'block px-3 py-1 text-sm leading-6 text-gray-900'
+                          'block px-3 py-1 text-sm leading-6 text-gray-900 w-full text-left'
                         )}
-                        onClick={() => deleteUserProfile(person.id, org.id)}
+                        onClick={() => deleteEmployeeProfile(person.id, org.id)}
                       >
                         Delete
-                        <span className="sr-only">, {person.name}</span>
+                        <span className="sr-only">, {person.firstName}</span>
                       </button>
                     )}
                   </Menu.Item>
@@ -116,7 +127,7 @@ export default function EmployeeModalList({ teamData, org }) {
                           'block px-3 py-1 text-sm leading-6 text-gray-900'
                         )}
                       >
-                        Edit<span className="sr-only">, {person.name}</span>
+                        Edit<span className="sr-only">, {person.firstName}</span>
                       </a>
                     )}
                   </Menu.Item>

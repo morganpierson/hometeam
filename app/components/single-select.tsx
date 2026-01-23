@@ -1,7 +1,19 @@
 'use client'
 import Select from 'react-select'
 
-const SingleSelect = ({ options, name, classname, labelName }) => {
+interface Option {
+  value: string
+  label: string
+}
+
+interface SingleSelectProps {
+  options: Option[]
+  name: string
+  classname?: string
+  labelName: string
+}
+
+const SingleSelect = ({ options, name, classname, labelName }: SingleSelectProps) => {
   return (
     <>
       <label htmlFor={name}>{labelName}</label>
@@ -9,7 +21,7 @@ const SingleSelect = ({ options, name, classname, labelName }) => {
       <Select
         options={options}
         name={name}
-        classNames={{ control: () => classname }}
+        classNames={{ control: () => classname || '' }}
       />
     </>
   )

@@ -1,27 +1,31 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { NextRequest, NextResponse } from 'next/server' // To handle the request and response
 import { prisma } from './db'
-import { getUserByClerkID } from './auth'
-import { promises as fs } from 'fs' // To save the file temporarily
+import { getEmployeeByClerkID } from './auth'
+import { promises as fs } from 'fs'
 import { revalidatePath } from 'next/cache'
 import { put } from '@vercel/blob'
 import OpenAI from 'openai'
 import PDFParser from 'pdf2json'
-import { v4 as uuidv4 } from 'uuid' // To generate a unique filename
-import { split } from 'postcss/lib/list'
+import { v4 as uuidv4 } from 'uuid'
+import { TradeCategory, ParticipantType } from '@prisma/client'
+
+// Action result type
+type ActionResult = {
+  success: boolean
+  error?: string
+  data?: unknown
+}
 
 const openai = new OpenAI({
   apiKey: process.env['OPEN_AI_API_KEY'],
 })
 
-const splitText = async (text: String) => {
-  console.log('SPLIT TEXT ARG STRING', text)
+const splitText = async (text: string): Promise<string[]> => {
   const maxChunkSize = 2048
-  let chunks = []
+  const chunks: string[] = []
   let currentChunk = ''
-  console.log('SPLIT TEXT', text.split(/(?=[A-Z])/))
   text.split(/(?=[A-Z])/).forEach((sentence) => {
     if (currentChunk.length + sentence.length < maxChunkSize) {
       currentChunk += sentence + '.'
@@ -34,15 +38,17 @@ const splitText = async (text: String) => {
   if (currentChunk) {
     chunks.push(currentChunk.trim())
   }
-  console.log('CHUNKS', chunks)
   return chunks
 }
 
-const generateSummary = async (text, firstName) => {
+const generateSummary = async (
+  text: string,
+  firstName: string
+): Promise<string[]> => {
   const inputChunks = await splitText(text)
-  let outputChunks = []
+  const outputChunks: string[] = []
 
-  for (let chunk of inputChunks) {
+  for (const chunk of inputChunks) {
     const response = await openai.chat.completions.create({
       messages: [
         {
@@ -52,80 +58,71 @@ const generateSummary = async (text, firstName) => {
       ],
       model: 'gpt-3.5-turbo',
     })
-    outputChunks.push(response.choices[0].message.content)
-  }
-
-  return outputChunks.join(' ')
-}
-
-//PARSE RESUME WORKING AS OF May 28. NEED TO ADD SUMMARY GENERATION to createNewUser and add summary to user model
-const parseResume = async (formData: any) => {
-  const uploadedFiles = formData.get('resume')
-  console.log('UPLOADED FILES', uploadedFiles)
-  let fileName = ''
-  let parsedText = ''
-
-  if (uploadedFiles) {
-    const uploadedFile = uploadedFiles
-    console.log('Uploaded file:', uploadedFile)
-
-    // Check if uploadedFile is of type File
-    if (uploadedFile instanceof File) {
-      // Generate a unique filename
-      fileName = uuidv4()
-
-      // Convert the uploaded file into a temporary file
-      const tempFilePath = `/tmp/${fileName}.pdf`
-
-      // Convert ArrayBuffer to Buffer
-      const fileBuffer = Buffer.from(await uploadedFile.arrayBuffer())
-
-      // Save the buffer as a file
-      await fs.writeFile(tempFilePath, fileBuffer)
-
-      // Parse the pdf using pdf2json. See pdf2json docs for more info.
-
-      // The reason I am bypassing type checks is because
-      // the default type definitions for pdf2json in the npm install
-      // do not allow for any constructor arguments.
-      // You can either modify the type definitions or bypass the type checks.
-      // I chose to bypass the type checks.
-      const pdfParser = new (PDFParser as any)(null, 1)
-
-      // See pdf2json docs for more info on how the below works.
-      pdfParser.on('pdfParser_dataError', (errData: any) =>
-        console.log(errData.parserError)
-      )
-
-      pdfParser.on('pdfParser_dataReady', async () => {
-        parsedText = (pdfParser as any).getRawTextContent()
-
-        const summary = await generateSummary(
-          parsedText,
-          formData.get('firstName')?.toString() || ''
-        )
-        console.log('SUMMARY', summary)
-      })
-
-      await pdfParser.loadPDF(tempFilePath)
-
-      return parsedText
-    } else {
-      console.log('Uploaded file is not in the expected format.')
+    const content = response.choices[0].message.content
+    if (content) {
+      outputChunks.push(content)
     }
-  } else {
-    console.log('No files found.')
   }
 
-  // const response = new NextResponse(parsedText)
-  // response.headers.set('FileName', fileName)
-  // return response
+  return outputChunks
 }
 
-//USER ACTIONS
+const parseResume = async (formData: FormData): Promise<string | null> => {
+  const uploadedFiles = formData.get('resume')
 
-//Saves user profile image to vercel blob
-const saveUserImage = async (imageFile: File) => {
+  if (!uploadedFiles) {
+    return null
+  }
+
+  const uploadedFile = uploadedFiles
+
+  if (!(uploadedFile instanceof File)) {
+    console.error('Uploaded file is not in the expected format.')
+    return null
+  }
+
+  const fileName = uuidv4()
+  const tempFilePath = `/tmp/${fileName}.pdf`
+  const fileBuffer = Buffer.from(await uploadedFile.arrayBuffer())
+
+  // Save the buffer as a file
+  await fs.writeFile(tempFilePath, fileBuffer)
+
+  // Parse the PDF using pdf2json wrapped in Promise
+  return new Promise((resolve, reject) => {
+    const pdfParser = new PDFParser()
+
+    pdfParser.on('pdfParser_dataError', (errData: { parserError: Error }) => {
+      console.error('PDF parsing error:', errData.parserError)
+      reject(errData.parserError)
+    })
+
+    pdfParser.on('pdfParser_dataReady', async () => {
+      try {
+        const parsedText = (pdfParser as unknown as { getRawTextContent: () => string }).getRawTextContent()
+        const firstName = formData.get('firstName')?.toString() || ''
+        const summaryChunks = await generateSummary(parsedText, firstName)
+        const summary = summaryChunks.join(' ')
+
+        // Clean up temp file
+        await fs.unlink(tempFilePath).catch(() => {})
+
+        resolve(summary)
+      } catch (error) {
+        reject(error)
+      }
+    })
+
+    pdfParser.loadPDF(tempFilePath)
+  })
+}
+
+// ============================================================================
+// EMPLOYEE ACTIONS
+// ============================================================================
+
+// Saves employee profile image to vercel blob
+const saveEmployeeImage = async (imageFile: File) => {
   try {
     const fileBuffer = Buffer.from(await imageFile.arrayBuffer())
     const profileImage = await put(
@@ -135,12 +132,13 @@ const saveUserImage = async (imageFile: File) => {
     )
     return profileImage
   } catch (error) {
-    console.error('Error saving user image', error)
+    console.error('Error saving employee image:', error)
+    throw error
   }
 }
 
-//Saves user resume to vercel blob
-const saveUserResume = async (resumeFile: File) => {
+// Saves employee resume to vercel blob
+const saveEmployeeResume = async (resumeFile: File) => {
   try {
     const fileBuffer = Buffer.from(await resumeFile.arrayBuffer())
 
@@ -150,571 +148,749 @@ const saveUserResume = async (resumeFile: File) => {
 
     return resumeBlob
   } catch (error) {
-    console.error('Error saving user resume', error)
+    console.error('Error saving employee resume:', error)
+    throw error
   }
 }
 
-//CREATE NEW USER WITHIN EXISTING ORG
-export const createNewUser = async (formData: FormData) => {
+// CREATE NEW EMPLOYEE WITHIN EXISTING EMPLOYER
+export const createNewEmployee = async (
+  prevState: ActionResult,
+  formData: FormData
+): Promise<ActionResult> => {
   const imageFile = formData.get('profileImage') as File
   const resumeFile = formData.get('resume') as File
-  // const resumeBlob = await saveUserResume(resumeFile)
-  //const imageBlob = await saveUserImage(imageFile)
-  const parsedResume = await parseResume(formData)
-  // console.log('CHAT GPT RESPONSE', completion.choices)
-  // try {
-  //   console.log('CREATING NEW USER')
-  //   const imageBlob = await saveUserImage(imageFile)
 
-  //   const resumeBlob = await saveUserResume(resumeFile)
+  try {
+    const [imageBlob, resumeBlob, resumeSummary] = await Promise.all([
+      saveEmployeeImage(imageFile),
+      saveEmployeeResume(resumeFile),
+      parseResume(formData),
+    ])
 
-  //   const userTeam = await prisma.team.findFirst({
-  //     where: {
-  //       name: formData.get('team')?.toString(),
-  //       companyId: formData.get('orgId')?.toString(),
-  //     },
-  //   })
+    const employer = await prisma.employer.findFirst({
+      where: {
+        id: formData.get('employerId')?.toString(),
+      },
+    })
 
-  //   const userOrg = await prisma.company.findFirst({
-  //     where: {
-  //       id: formData.get('orgId')?.toString(),
-  //     },
-  //   })
+    // Parse trade category if provided
+    const tradeCategoryStr = formData.get('tradeCategory')?.toString()
+    const tradeCategory = tradeCategoryStr ? tradeCategoryStr as TradeCategory : null
 
-  //   const user = await prisma.user.create({
-  //     data: {
-  //       firstName: formData.get('firstName')?.toString(),
-  //       lastName: formData.get('lastName')?.toString(),
-  //       email: formData.get('email')?.toString(),
-  //       availableForAcquisition: false,
+    await prisma.employee.create({
+      data: {
+        firstName: formData.get('firstName')?.toString(),
+        lastName: formData.get('lastName')?.toString(),
+        email: formData.get('email')?.toString(),
+        phone: formData.get('phone')?.toString(),
+        isAvailableForHire: false,
+        profileImage: imageBlob.url,
+        resume: resumeBlob.downloadUrl,
+        resumeSummary: resumeSummary,
+        location: formData.get('location')?.toString(),
+        tradeCategory: tradeCategory,
+        yearsExperience: formData.get('yearsExperience')
+          ? parseInt(formData.get('yearsExperience')!.toString())
+          : null,
+        hourlyRate: formData.get('hourlyRate')
+          ? parseFloat(formData.get('hourlyRate')!.toString())
+          : null,
+        employer: {
+          connect: {
+            id: employer?.id,
+          },
+        },
+      },
+    })
 
-  //       profileImage: imageBlob.url,
-  //       resume: resumeBlob.downloadUrl,
-  //       role: formData.get('role')?.toString(),
-  //       team: {
-  //         connect: {
-  //           id: userTeam?.id,
-  //         },
-  //       },
-  //       company: {
-  //         connect: {
-  //           id: userOrg?.id,
-  //         },
-  //       },
-  //     },
-  //   })
-  //   console.log('USER', user)
-  //   revalidatePath(`/org/${formData.get('orgId')?.toString()}/edit`)
-  // } catch (e) {
-  //   console.error('ERROR', e)
-  // }
+    revalidatePath(`/org/${formData.get('employerId')?.toString()}/edit`)
+    return { success: true }
+  } catch (error) {
+    console.error('Error creating employee:', error)
+    return { success: false, error: 'Failed to create employee' }
+  }
 }
 
-//FETCH USERS TO DISPLAY ON MARKETPLACE PAGE
+// FETCH EMPLOYEES TO DISPLAY ON MARKETPLACE PAGE
 export const fetchMarketplaceEmployees = async () => {
-  const availableUsers = await prisma.user.findMany({
+  const availableEmployees = await prisma.employee.findMany({
     where: {
-      availableForAcquisition: true,
+      isAvailableForHire: true,
     },
     include: {
-      company: true,
-      acquisitionOffer: true,
-      team: true,
+      employer: true,
+      hireOffers: true,
+      certifications: true,
+      ownedPortfolioItems: true,
+      contributions: true,
     },
   })
-  return availableUsers
+  return availableEmployees
 }
 
-export const fetchUser = async (id: string) => {
-  const user = await prisma.user.findUnique({
+export const fetchEmployee = async (id: string) => {
+  const employee = await prisma.employee.findUnique({
     where: {
       id: id,
     },
     include: {
-      company: true,
-      acquisitionOffer: true,
-      team: true,
+      employer: true,
+      hireOffers: true,
+      certifications: true,
+      ownedPortfolioItems: true,
+      contributions: true,
+      serviceAreas: true,
+      reviewsReceived: true,
     },
   })
-  return user
+  return employee
 }
 
-//UPDATE USER INFO
-export const updateUserInfo = async (
-  prevState: {
-    email: string
-    id: string
-  },
+// UPDATE EMPLOYEE INFO
+export const updateEmployeeInfo = async (
+  prevState: ActionResult,
   formData: FormData
-) => {
-  const offerAmount = parseInt(formData.get('offerAmount')?.toString() || '0')
-  console.log('FORM DATA', formData)
-  const user = await prisma.user.findUnique({
-    where: {
-      id: formData.get('id')?.toString(),
-    },
-    include: {
-      acquisitionOffer: true,
-    },
-  })
-  const acquisitionOffer = await prisma.acquisitionOffer.upsert({
-    where: { userId: formData.get('id')?.toString() },
-    update: {
-      amount: offerAmount || user?.acquisitionOffer?.amount,
-      offerType:
-        formData.get('offerType')?.toString().toLowerCase() ||
-        user?.acquisitionOffer?.offerType,
-    },
-    create: {
-      amount: offerAmount,
-      offerType: formData.get('offerType')?.toString().toLowerCase(),
-      user: {
-        connect: {
-          id: formData.get('id')?.toString(),
-        },
-      },
-      offeringCompany: {
-        connect: {
-          id: formData.get('orgId')?.toString(),
-        },
-      },
-    },
-  })
-
-  await prisma.user.update({
-    where: {
-      id: formData.get('id')?.toString(),
-    },
-    data: {
-      email: formData.get('email')?.toString() || user?.email,
-      acquisitionOffer: {
-        connect: {
-          id: acquisitionOffer.id,
-        },
-      },
-    },
-  })
-
-  revalidatePath(`/user/${formData.get('id')?.toString}`)
-}
-
-//COMPANY (ORG) ACTIONS
-export const updateOrgInfo = async (
-  prevState: {
-    name: string
-    website: string
-  },
-  formData: FormData
-) => {
-  console.log('UPDATE ORG FORM DATA ', formData)
-  const logoFile = formData.get('logo') as File
-
-  const currentOrg = await prisma.company.findFirst({
-    where: {
-      id: formData.get('id')?.toString(),
-    },
-  })
-  const logoBlob = await put(
-    `logos/${currentOrg?.name}/${logoFile.name}`,
-    logoFile,
-    {
-      access: 'public',
-    }
-  )
-  const updatedOrg = await prisma.company.update({
-    where: {
-      id: formData.get('id')?.toString(),
-    },
-    data: {
-      name: formData.get('name')?.toString() || currentOrg?.name || '',
-      website: formData.get('website')?.toString() || currentOrg?.website || '',
-      logo: logoBlob.url ? logoBlob.url : currentOrg?.logo || '',
-    },
-  })
-
-  revalidatePath(`/org/${formData.get('id')?.toString}`)
-}
-
-export const createNewOrg = async (
-  prevState: {
-    name: string
-    size: string
-    industries: string[]
-  },
-  formData: FormData
-) => {
-  const user = await getUserByClerkID()
-
-  const newCompany = await prisma.company.create({
-    data: {
-      name: formData.get('orgName') ? formData.get('orgName')!.toString() : '',
-      size: formData.get('orgSize') ? formData.get('orgSize')!.toString() : '',
-    },
-  })
-
-  const updatedCompany = await prisma.company.update({
-    where: {
-      id: newCompany.id,
-    },
-    data: {
-      employees: {
-        create: [
-          {
-            firstName: 'John',
-            lastName: 'Doe',
-            team: {
-              create: {
-                name: 'Product',
-                company: {
-                  connect: {
-                    id: newCompany.id,
-                  },
-                },
-              },
-            },
-          },
-          {
-            firstName: 'Jane',
-            lastName: 'Doe',
-            team: {
-              create: {
-                name: 'Engineering',
-                company: {
-                  connect: {
-                    id: newCompany.id,
-                  },
-                },
-              },
-            },
-          },
-          {
-            firstName: 'Bob',
-            lastName: 'Doe',
-            team: {
-              create: {
-                name: 'Marketing',
-                company: {
-                  connect: {
-                    id: newCompany.id,
-                  },
-                },
-              },
-            },
-          },
-          {
-            firstName: 'Sally',
-            lastName: 'Doe',
-            team: {
-              create: {
-                name: 'Sales',
-                company: {
-                  connect: {
-                    id: newCompany.id,
-                  },
-                },
-              },
-            },
-          },
-        ],
-      },
-    },
-  })
-
-  // const orgIndustries = await prisma.industry.findMany({
-  //   where: {
-  //     name: { in: formData.getAll('orgIndustries') },
-  //   },
-  // })
-
-  await prisma.user.update({
-    where: {
-      id: user.id,
-    },
-    data: {
-      company: {
-        connect: {
-          id: updatedCompany.id,
-        },
-      },
-    },
-  })
-
-  // await prisma.company.update({
-  //   where: {
-  //     id: updatedCompany.id,
-  //   },
-  //   data: {
-  //     industries: {
-  //       connect: orgIndustries.map((org) => ({ id: org.id })),
-  //     },
-  //   },
-  // })
-
-  const orgName = formData.get('orgName')?.toString().toLowerCase()
-
-  redirect(`/org/${orgName}`)
-}
-
-export const fetchOrgData = async () => {
-  const user = await getUserByClerkID()
-  console.log('USER WHILE FETCHING ORG DATA', user)
+): Promise<ActionResult> => {
   try {
-    const orgData = await prisma.company.findFirst({
+    const employee = await prisma.employee.findUnique({
+      where: {
+        id: formData.get('id')?.toString(),
+      },
+    })
+
+    // Parse trade category if provided
+    const tradeCategoryStr = formData.get('tradeCategory')?.toString()
+    const tradeCategory = tradeCategoryStr ? tradeCategoryStr as TradeCategory : undefined
+
+    await prisma.employee.update({
+      where: {
+        id: formData.get('id')?.toString(),
+      },
+      data: {
+        email: formData.get('email')?.toString() || employee?.email,
+        firstName: formData.get('firstName')?.toString() || employee?.firstName,
+        lastName: formData.get('lastName')?.toString() || employee?.lastName,
+        phone: formData.get('phone')?.toString() || employee?.phone,
+        location: formData.get('location')?.toString() || employee?.location,
+        bio: formData.get('bio')?.toString() || employee?.bio,
+        tradeCategory: tradeCategory || employee?.tradeCategory,
+        yearsExperience: formData.get('yearsExperience')
+          ? parseInt(formData.get('yearsExperience')!.toString())
+          : employee?.yearsExperience,
+        hourlyRate: formData.get('hourlyRate')
+          ? parseFloat(formData.get('hourlyRate')!.toString())
+          : employee?.hourlyRate,
+        isAvailableForHire: formData.get('isAvailableForHire') === 'true',
+      },
+    })
+
+    revalidatePath(`/employee/${formData.get('id')?.toString()}`)
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating employee:', error)
+    return { success: false, error: 'Failed to update employee' }
+  }
+}
+
+// ============================================================================
+// EMPLOYER ACTIONS
+// ============================================================================
+
+export const updateEmployerInfo = async (
+  prevState: ActionResult,
+  formData: FormData
+): Promise<ActionResult> => {
+  try {
+    const logoFile = formData.get('logo') as File
+
+    const currentEmployer = await prisma.employer.findFirst({
+      where: {
+        id: formData.get('id')?.toString(),
+      },
+    })
+
+    const logoBlob = await put(
+      `logos/${currentEmployer?.name}/${logoFile.name}`,
+      logoFile,
+      {
+        access: 'public',
+      }
+    )
+
+    await prisma.employer.update({
+      where: {
+        id: formData.get('id')?.toString(),
+      },
+      data: {
+        name: formData.get('name')?.toString() || currentEmployer?.name || '',
+        website: formData.get('website')?.toString() || currentEmployer?.website || '',
+        logo: logoBlob.url ? logoBlob.url : currentEmployer?.logo || '',
+        description: formData.get('description')?.toString() || currentEmployer?.description,
+        contactEmail: formData.get('contactEmail')?.toString() || currentEmployer?.contactEmail,
+        contactPhone: formData.get('contactPhone')?.toString() || currentEmployer?.contactPhone,
+        city: formData.get('city')?.toString() || currentEmployer?.city,
+        state: formData.get('state')?.toString() || currentEmployer?.state,
+        zipCode: formData.get('zipCode')?.toString() || currentEmployer?.zipCode,
+      },
+    })
+
+    revalidatePath(`/org/${formData.get('id')?.toString()}`)
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating employer:', error)
+    return { success: false, error: 'Failed to update employer' }
+  }
+}
+
+export const createNewEmployer = async (
+  prevState: ActionResult,
+  formData: FormData
+): Promise<ActionResult> => {
+  try {
+    const employee = await getEmployeeByClerkID()
+
+    const newEmployer = await prisma.employer.create({
+      data: {
+        name: formData.get('orgName') ? formData.get('orgName')!.toString() : '',
+        size: formData.get('orgSize') ? formData.get('orgSize')!.toString() : '',
+      },
+    })
+
+    await prisma.employee.update({
+      where: {
+        id: employee.id,
+      },
+      data: {
+        employer: {
+          connect: {
+            id: newEmployer.id,
+          },
+        },
+        isAdmin: true,
+      },
+    })
+
+    const orgName = formData.get('orgName')?.toString().toLowerCase()
+
+    redirect(`/org/${orgName}`)
+  } catch (error) {
+    // redirect throws an error, so we need to rethrow it
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+      throw error
+    }
+    console.error('Error creating employer:', error)
+    return { success: false, error: 'Failed to create employer' }
+  }
+}
+
+export const fetchEmployerData = async () => {
+  try {
+    const employee = await getEmployeeByClerkID()
+
+    const employerData = await prisma.employer.findFirst({
       where: {
         employees: {
           some: {
-            clerkId: user.clerkId,
+            clerkId: employee.clerkId,
           },
         },
       },
       include: {
         employees: true,
-        teams: true,
+        portfolio: true,
         savedCandidates: true,
-        messageThreads: true,
+        conversations: true,
+        serviceAreas: true,
+        projectAssignments: true,
       },
     })
 
-    return orgData
+    return employerData
   } catch (error) {
-    console.error('Error fetching org data', error)
+    console.error('Error fetching employer data:', error)
+    return null
   }
 }
 
-export const fetchMessageThreads = async (id: string) => {
-  const threads = await prisma.messageThread.findMany({
+// ============================================================================
+// CONVERSATION / MESSAGE ACTIONS
+// ============================================================================
+
+export const fetchConversations = async (employerId: string) => {
+  const conversations = await prisma.conversation.findMany({
     where: {
-      companies: {
+      employers: {
         some: {
-          id: id,
+          id: employerId,
         },
       },
     },
     include: {
       messages: {
-        include: {
-          sendingCompany: true,
-          receivingCompany: true,
+        orderBy: {
+          createdAt: 'desc',
         },
+        take: 1,
       },
-      companies: true,
-      offer: {
+      employers: true,
+      employees: true,
+      clients: true,
+      hireOffer: {
         include: {
-          user: true,
+          employee: true,
         },
       },
     },
   })
 
-  return threads
+  return conversations
 }
 
-export const fetchThreadDetails = async (id: string) => {
-  const threadDetails = await prisma.messageThread.findFirst({
+export const fetchConversationDetails = async (id: string) => {
+  const conversationDetails = await prisma.conversation.findFirst({
     where: {
       id: id,
     },
     include: {
       messages: {
-        include: {
-          sendingCompany: true,
-          receivingCompany: true,
+        orderBy: {
+          createdAt: 'asc',
         },
       },
-      offer: {
+      employers: true,
+      employees: true,
+      clients: true,
+      hireOffer: {
         include: {
-          user: true,
+          employee: true,
+          employer: true,
         },
       },
+      project: true,
     },
   })
 
-  return threadDetails
+  return conversationDetails
 }
 
-export const saveCandidate = async (formData: FormData) => {
-  const currentUser = await getUserByClerkID()
-  const savedCandidate = formData.get('userId')?.toString()
-  const savedUser = await prisma.user.findFirst({
-    where: {
-      id: savedCandidate,
-    },
-  })
-  const company = await prisma.company.findFirst({
-    where: {
-      employees: {
-        some: {
-          clerkId: currentUser.clerkId,
+export const saveCandidate = async (
+  prevState: ActionResult,
+  formData: FormData
+): Promise<ActionResult> => {
+  try {
+    const currentEmployee = await getEmployeeByClerkID()
+    const savedCandidateId = formData.get('employeeId')?.toString()
+
+    const savedEmployee = await prisma.employee.findFirst({
+      where: {
+        id: savedCandidateId,
+      },
+    })
+
+    const employer = await prisma.employer.findFirst({
+      where: {
+        employees: {
+          some: {
+            clerkId: currentEmployee.clerkId,
+          },
         },
       },
-    },
-  })
+    })
 
-  await prisma.company.update({
-    where: {
-      id: company?.id,
-    },
-    data: {
-      savedCandidates: {
-        connect: {
-          id: savedUser?.id,
+    await prisma.employer.update({
+      where: {
+        id: employer?.id,
+      },
+      data: {
+        savedCandidates: {
+          connect: {
+            id: savedEmployee?.id,
+          },
         },
       },
-    },
-  })
+    })
 
-  revalidatePath(`/marketplace`)
+    revalidatePath(`/marketplace`)
+    return { success: true }
+  } catch (error) {
+    console.error('Error saving candidate:', error)
+    return { success: false, error: 'Failed to save candidate' }
+  }
 }
 
-export const getSavedCandidates = async (id: string) => {
-  const candidates = await prisma.user.findMany({
+export const getSavedCandidates = async (employerId: string) => {
+  const employer = await prisma.employer.findUnique({
     where: {
-      interestedCompanies: {
-        some: {
-          id: id,
-        },
-      },
+      id: employerId,
     },
     include: {
-      company: true,
-      acquisitionOffer: true,
-      team: true,
+      savedCandidates: {
+        include: {
+          employer: true,
+          hireOffers: true,
+          certifications: true,
+        },
+      },
     },
   })
 
-  // const company = await prisma.company.findFirst({
-  //   where: {
-  //     employees: {
-  //       some: {
-  //         id: currentUser.id,
-  //       },
-  //     },
-  //   },
-  //   include: {
-  //     savedCandidates: true,
-  //     teams: true,
-  //   },
-  // })
-
-  return candidates
+  return employer?.savedCandidates || []
 }
 
-//MESSAGE ACTIONS
-export const sendMessage = async (formData: FormData) => {
-  //get the id of the company that is sending the message and the id of the company receiving the message
-  //then create a message and reference the two company ids
-  //then create a thread and connect the new message to that thread
-  console.log('SEND MESSAGE FIRED')
-  const sendingUser = await getUserByClerkID()
-  const receivingCompany = await prisma.company.findFirst({
-    where: {
-      employees: {
-        some: {
-          id: formData.get('candidate')?.toString(),
-        },
-      },
-    },
-  })
-  const sendingCompany = await prisma.company.findFirst({
-    where: {
-      //find company that contains a user with the user.id
-      employees: {
-        some: {
-          id: sendingUser.id,
-        },
-      },
-    },
-  })
-  const acquisitionOffer = await prisma.acquisitionOffer.findFirst({
-    where: {
-      userId: formData.get('candidate')?.toString(),
-    },
-  })
-  console.log('ACQUISITION OFFER', acquisitionOffer)
-  const messageThread = await prisma.messageThread.create({
-    data: {
-      messages: {
-        create: {
-          message: formData.get('message')?.toString() || '',
-          sendingCompany: {
-            connect: {
-              id: sendingCompany?.id,
-            },
-          },
-          receivingCompany: {
-            connect: {
-              id: receivingCompany?.id,
-            },
-          },
-        },
-      },
-      offer: {
-        connect: {
-          id: acquisitionOffer?.id,
-        },
-      },
-      companies: {
-        connect: [
-          {
-            id: sendingCompany?.id,
-          },
-          {
-            id: receivingCompany?.id,
-          },
-        ],
-      },
-    },
-  })
-  console.log('MESSAGE THREAD', messageThread)
-}
-
-//TEAM ACTIONS
-export const createNewTeam = async (formData: FormData) => {
-  const user = await getUserByClerkID()
-  console.log('CREATE NEW TEAM FIRED')
-
-  console.log('TRYING TO CREATE A TEAM')
-  console.log('FORM DATA', formData)
-  let imageBlob
+// Send a message (for hire offers or general communication)
+export const sendMessage = async (formData: FormData): Promise<ActionResult> => {
   try {
-    const logoFile = formData.get('teamLogo') as File
-    console.log('LOGO FILE', logoFile)
-    imageBlob = await put(`teamLogos/${logoFile.name}`, logoFile, {
-      access: 'public',
+    const sendingEmployee = await getEmployeeByClerkID()
+    const candidateId = formData.get('candidateId')?.toString()
+    const message = formData.get('message')?.toString() || ''
+
+    // Get the candidate's employer
+    const candidate = await prisma.employee.findFirst({
+      where: {
+        id: candidateId,
+      },
+      include: {
+        employer: true,
+      },
     })
-    console.log('IMAGE BLOB', imageBlob.url)
-  } catch (e) {
-    console.error('ERROR', e)
-  }
 
-  try {
-    await prisma.team.create({
+    // Get the sending employee's employer
+    const sendingEmployer = await prisma.employer.findFirst({
+      where: {
+        employees: {
+          some: {
+            id: sendingEmployee.id,
+          },
+        },
+      },
+    })
+
+    if (!sendingEmployer || !candidate) {
+      return { success: false, error: 'Could not find employer or candidate' }
+    }
+
+    // Create a conversation with the initial message
+    await prisma.conversation.create({
       data: {
-        name: formData.get('teamName')?.toString() ?? '',
-        logo: imageBlob?.url || '',
-        company: {
+        employers: {
+          connect: [
+            { id: sendingEmployer.id },
+            ...(candidate.employer ? [{ id: candidate.employer.id }] : []),
+          ],
+        },
+        employees: {
           connect: {
-            id: user.companyId || '',
+            id: candidate.id,
+          },
+        },
+        messages: {
+          create: {
+            content: message,
+            senderId: sendingEmployee.id,
+            senderType: ParticipantType.EMPLOYEE,
           },
         },
       },
     })
-    revalidatePath(`/org/${user.companyId}/edit`)
-  } catch (e) {
-    console.error('ERROR', e)
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error sending message:', error)
+    return { success: false, error: 'Failed to send message' }
   }
 }
 
-export const fetchProjectData = async (id: string) => {
+// Create a hire offer
+export const createHireOffer = async (formData: FormData): Promise<ActionResult> => {
+  try {
+    const sendingEmployee = await getEmployeeByClerkID()
+    const candidateId = formData.get('candidateId')?.toString()
+    const offeredRate = formData.get('offeredRate')?.toString()
+    const rateType = formData.get('rateType')?.toString()
+    const message = formData.get('message')?.toString()
+
+    const sendingEmployer = await prisma.employer.findFirst({
+      where: {
+        employees: {
+          some: {
+            id: sendingEmployee.id,
+          },
+        },
+      },
+    })
+
+    if (!sendingEmployer || !candidateId) {
+      return { success: false, error: 'Could not find employer or candidate' }
+    }
+
+    // Create conversation first
+    const conversation = await prisma.conversation.create({
+      data: {
+        employers: {
+          connect: {
+            id: sendingEmployer.id,
+          },
+        },
+        employees: {
+          connect: {
+            id: candidateId,
+          },
+        },
+        messages: {
+          create: {
+            content: message || `Hire offer: $${offeredRate} (${rateType})`,
+            senderId: sendingEmployee.id,
+            senderType: ParticipantType.EMPLOYEE,
+          },
+        },
+      },
+    })
+
+    // Create the hire offer linked to conversation
+    await prisma.hireOffer.create({
+      data: {
+        offeredRate: offeredRate ? parseFloat(offeredRate) : null,
+        rateType: rateType,
+        message: message,
+        employer: {
+          connect: {
+            id: sendingEmployer.id,
+          },
+        },
+        employee: {
+          connect: {
+            id: candidateId,
+          },
+        },
+        conversation: {
+          connect: {
+            id: conversation.id,
+          },
+        },
+      },
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error creating hire offer:', error)
+    return { success: false, error: 'Failed to create hire offer' }
+  }
+}
+
+// ============================================================================
+// PROJECT ACTIONS
+// ============================================================================
+
+export const fetchProjectData = async (employerId: string) => {
   const projects = await prisma.project.findMany({
     where: {
-      companyId: id,
+      employers: {
+        some: {
+          id: employerId,
+        },
+      },
     },
     include: {
-      users: true,
-      teams: true,
+      employees: true,
+      employers: true,
+      client: true,
     },
   })
 
   return projects
 }
+
+// ============================================================================
+// PORTFOLIO ACTIONS
+// ============================================================================
+
+export const createPortfolioItem = async (formData: FormData): Promise<ActionResult> => {
+  try {
+    const currentEmployee = await getEmployeeByClerkID()
+    const ownerType = formData.get('ownerType')?.toString() as 'EMPLOYER' | 'EMPLOYEE'
+
+    const coverImageFile = formData.get('coverImage') as File
+    let coverImageUrl: string | undefined
+
+    if (coverImageFile && coverImageFile.size > 0) {
+      const imageBlob = await put(`portfolio/${coverImageFile.name}`, coverImageFile, {
+        access: 'public',
+      })
+      coverImageUrl = imageBlob.url
+    }
+
+    // Parse trade categories
+    const tradeCategoriesStr = formData.get('tradeCategories')?.toString()
+    const tradeCategories = tradeCategoriesStr
+      ? tradeCategoriesStr.split(',').map(t => t.trim() as TradeCategory)
+      : []
+
+    if (ownerType === 'EMPLOYER') {
+      const employer = await prisma.employer.findFirst({
+        where: {
+          employees: {
+            some: {
+              id: currentEmployee.id,
+            },
+          },
+        },
+      })
+
+      await prisma.portfolioItem.create({
+        data: {
+          title: formData.get('title')?.toString() || '',
+          description: formData.get('description')?.toString(),
+          city: formData.get('city')?.toString(),
+          state: formData.get('state')?.toString(),
+          coverImage: coverImageUrl,
+          tradeCategories: tradeCategories,
+          completedDate: formData.get('completedDate')
+            ? new Date(formData.get('completedDate')!.toString())
+            : null,
+          clientName: formData.get('clientName')?.toString(),
+          clientTestimonial: formData.get('clientTestimonial')?.toString(),
+          ownerType: 'EMPLOYER',
+          employerOwner: {
+            connect: {
+              id: employer?.id,
+            },
+          },
+        },
+      })
+    } else {
+      await prisma.portfolioItem.create({
+        data: {
+          title: formData.get('title')?.toString() || '',
+          description: formData.get('description')?.toString(),
+          city: formData.get('city')?.toString(),
+          state: formData.get('state')?.toString(),
+          coverImage: coverImageUrl,
+          tradeCategories: tradeCategories,
+          completedDate: formData.get('completedDate')
+            ? new Date(formData.get('completedDate')!.toString())
+            : null,
+          clientName: formData.get('clientName')?.toString(),
+          clientTestimonial: formData.get('clientTestimonial')?.toString(),
+          ownerType: 'EMPLOYEE',
+          employeeOwner: {
+            connect: {
+              id: currentEmployee.id,
+            },
+          },
+        },
+      })
+    }
+
+    revalidatePath('/portfolio')
+    return { success: true }
+  } catch (error) {
+    console.error('Error creating portfolio item:', error)
+    return { success: false, error: 'Failed to create portfolio item' }
+  }
+}
+
+// ============================================================================
+// CERTIFICATION ACTIONS
+// ============================================================================
+
+export const addCertification = async (formData: FormData): Promise<ActionResult> => {
+  try {
+    const employeeId = formData.get('employeeId')?.toString()
+
+    const documentFile = formData.get('document') as File
+    let documentUrl: string | undefined
+
+    if (documentFile && documentFile.size > 0) {
+      const docBlob = await put(`certifications/${documentFile.name}`, documentFile, {
+        access: 'public',
+      })
+      documentUrl = docBlob.url
+    }
+
+    await prisma.certification.create({
+      data: {
+        name: formData.get('name')?.toString() || '',
+        issuingBody: formData.get('issuingBody')?.toString(),
+        licenseNumber: formData.get('licenseNumber')?.toString(),
+        issuedDate: formData.get('issuedDate')
+          ? new Date(formData.get('issuedDate')!.toString())
+          : null,
+        expirationDate: formData.get('expirationDate')
+          ? new Date(formData.get('expirationDate')!.toString())
+          : null,
+        documentUrl: documentUrl,
+        employee: {
+          connect: {
+            id: employeeId,
+          },
+        },
+      },
+    })
+
+    revalidatePath(`/employee/${employeeId}`)
+    return { success: true }
+  } catch (error) {
+    console.error('Error adding certification:', error)
+    return { success: false, error: 'Failed to add certification' }
+  }
+}
+
+// ============================================================================
+// SEARCH FUNCTIONALITY
+// ============================================================================
+
+export interface SearchFilters {
+  tradeCategory?: TradeCategory
+  location?: string
+  minYearsExperience?: number
+  maxHourlyRate?: number
+  isBackgroundChecked?: boolean
+  isInsured?: boolean
+}
+
+export const searchMarketplace = async (filters: SearchFilters) => {
+  return prisma.employee.findMany({
+    where: {
+      isAvailableForHire: true,
+      ...(filters.tradeCategory && {
+        tradeCategory: filters.tradeCategory,
+      }),
+      ...(filters.location && {
+        location: { contains: filters.location, mode: 'insensitive' as const },
+      }),
+      ...(filters.minYearsExperience && {
+        yearsExperience: { gte: filters.minYearsExperience },
+      }),
+      ...(filters.maxHourlyRate && {
+        hourlyRate: { lte: filters.maxHourlyRate },
+      }),
+      ...(filters.isBackgroundChecked && {
+        isBackgroundChecked: true,
+      }),
+      ...(filters.isInsured && {
+        isInsured: true,
+      }),
+    },
+    include: {
+      employer: true,
+      hireOffers: true,
+      certifications: true,
+      ownedPortfolioItems: true,
+    },
+  })
+}
+
+// ============================================================================
+// LEGACY FUNCTION ALIASES (for backward compatibility during migration)
+// ============================================================================
+
+// These aliases help during the transition - can be removed once all components are updated
+export const createNewUser = createNewEmployee
+export const fetchUser = fetchEmployee
+export const updateUserInfo = updateEmployeeInfo
+export const createNewOrg = createNewEmployer
+export const updateOrgInfo = updateEmployerInfo
+export const fetchOrgData = fetchEmployerData
+export const fetchMessageThreads = fetchConversations
+export const fetchThreadDetails = fetchConversationDetails

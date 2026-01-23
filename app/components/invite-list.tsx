@@ -2,6 +2,15 @@
 import { useState } from 'react'
 import ListContainer from './list-container'
 
+interface EmailListInputProps {
+  name: string
+  email: string
+  setEmail: (e: React.ChangeEvent<HTMLInputElement>) => void
+  emailList: string[]
+  handleAddEmail: () => void
+  handleRemoveEmail: (email: string) => void
+}
+
 const EmailListInput = ({
   name,
   email,
@@ -9,7 +18,7 @@ const EmailListInput = ({
   emailList,
   handleAddEmail,
   handleRemoveEmail,
-}) => {
+}: EmailListInputProps) => {
   return (
     <div>
       <div className="flex flex-col">

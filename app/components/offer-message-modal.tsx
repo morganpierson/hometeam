@@ -1,16 +1,33 @@
-import { Fragment, useRef, useState } from 'react'
+'use client'
+
+import { Fragment, useRef } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { CheckIcon } from '@heroicons/react/24/outline'
 import OfferMessageForm from './offer-message-form'
+
+interface OfferMessageModalProps {
+  open: boolean
+  setOpen: (open: boolean) => void
+  candidate: {
+    id: string
+    firstName?: string | null
+    lastName?: string | null
+    employer?: {
+      id: string
+      name: string
+    } | null
+  }
+  employer?: {
+    id: string
+    name: string
+  } | null
+}
 
 export default function OfferMessageModal({
   open,
   setOpen,
   candidate,
-  company,
-}) {
-  // const [open, setOpen] = useState(true)
-
+  employer,
+}: OfferMessageModalProps) {
   const cancelButtonRef = useRef(null)
 
   return (
@@ -45,10 +62,16 @@ export default function OfferMessageModal({
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                <Dialog.Title
+                  as="h3"
+                  className="text-lg font-semibold leading-6 text-gray-900 mb-4"
+                >
+                  Contact Candidate
+                </Dialog.Title>
                 <OfferMessageForm
                   setOpen={setOpen}
                   candidate={candidate}
-                  company={company}
+                  employer={employer}
                 />
               </Dialog.Panel>
             </Transition.Child>

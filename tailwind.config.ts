@@ -1,32 +1,43 @@
 import type { Config } from 'tailwindcss'
+import formsPlugin from '@tailwindcss/forms'
+import headlessuiPlugin from '@headlessui/tailwindcss'
 
 const config: Config = {
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
-
-    // Or if using `src` directory:
     './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    // colors: {
-    //   blue: '#2684ff',
-    //   dark_blue: '#009de3',
-    //   orange: '#f7a02c',
-    //   secondary_white: '#fff0db',
-    //   gray_light: '#e5e5e5',
-    //   white: '#ffffff',
-    // },
-    fontFamily: {
-      sans: ['Monteserrat', 'inter'],
+    fontSize: {
+      xs: ['0.75rem', { lineHeight: '1rem' }],
+      sm: ['0.875rem', { lineHeight: '1.5rem' }],
+      base: ['1rem', { lineHeight: '1.75rem' }],
+      lg: ['1.125rem', { lineHeight: '2rem' }],
+      xl: ['1.25rem', { lineHeight: '2rem' }],
+      '2xl': ['1.5rem', { lineHeight: '2rem' }],
+      '3xl': ['2rem', { lineHeight: '2.5rem' }],
+      '4xl': ['2.5rem', { lineHeight: '3.5rem' }],
+      '5xl': ['3rem', { lineHeight: '3.5rem' }],
+      '6xl': ['3.75rem', { lineHeight: '1' }],
+      '7xl': ['4.5rem', { lineHeight: '1.1' }],
+      '8xl': ['6rem', { lineHeight: '1' }],
+      '9xl': ['8rem', { lineHeight: '1' }],
     },
-    // extend: {
-    //   blur: {
-    //     xs: '2px',
-    //   },
-    // },
+    fontFamily: {
+      sans: ['var(--font-inter)', 'Montserrat', 'inter'],
+      display: ['var(--font-lexend)'],
+    },
+    extend: {
+      borderRadius: {
+        '4xl': '2rem',
+      },
+      maxWidth: {
+        '2xl': '40rem',
+      },
+    },
   },
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [formsPlugin, headlessuiPlugin],
 }
 export default config

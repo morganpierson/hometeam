@@ -2,29 +2,38 @@ import UserProfile from '@/app/components/user-profile'
 import { prisma } from '@/utils/db'
 import { list } from '@vercel/blob'
 
-const getUser = async (id) => {
-  const user = await prisma.user.findUnique({
+const getEmployee = async (id: string) => {
+  const employee = await prisma.employee.findUnique({
     where: {
       id: id,
     },
     include: {
-      team: true,
-      company: true,
-      acquisitionOffer: true,
+      employer: true,
+      certifications: true,
+      hireOffers: true,
+      ownedPortfolioItems: true,
+      contributions: true,
+      serviceAreas: true,
+      reviewsReceived: true,
     },
   })
 
-  return user
+  return employee
 }
 
-const AdminUserProfile = async ({ params }) => {
+const AdminUserProfile = async ({ params }: { params: { id: string } }) => {
   const response = await list()
-  const user = await getUser(params.id)
+  const employee = await getEmployee(params.id)
   console.log('RESPONSE', response)
-  console.log('USER')
+  console.log('EMPLOYEE', employee)
+
   return (
     <div className="px-10 h-24">
-      <UserProfile user={user} org={user?.company.id} isOnMarketplace={false} />
+      <UserProfile
+        user={employee}
+        org={employee?.employer?.id}
+        isOnMarketplace={false}
+      />
     </div>
   )
 }

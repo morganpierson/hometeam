@@ -1,57 +1,28 @@
 import EditOrgForm from '@/app/components/edit-org-form'
-import { getUserByClerkID } from '@/utils/auth'
+import { getEmployeeByClerkID } from '@/utils/auth'
 import { prisma } from '@/utils/db'
 
-const getOrgData = async () => {
-  const user = await getUserByClerkID()
-  const data = await prisma.company.findUniqueOrThrow({
+const getEmployerData = async () => {
+  const employee = await getEmployeeByClerkID()
+  const data = await prisma.employer.findUniqueOrThrow({
     where: {
-      id: user.companyId,
+      id: employee?.employerId ?? undefined,
     },
     include: {
       employees: true,
-      teams: true,
+      portfolio: true,
+      serviceAreas: true,
     },
   })
 
   return data
 }
 
-const getTeamList = async () => {
-  //query the list of all teams within the organization
-  const user = await getUserByClerkID()
-  const currentOrg = await getOrgData()
-  const teams = await prisma.team.findMany({
-    where: {
-      companyId: currentOrg.id,
-    },
-    include: {
-      members: true,
-    },
-  })
-  const sortedTeams = teams.sort((a, b) => {
-    if (a.name < b.name) {
-      return -1
-    }
-    if (a.name > b.name) {
-      return 1
-    }
-    return 0
-  })
-  return sortedTeams
-}
 const EditOrgPage = async () => {
-  const orgData = await getOrgData()
-  const teamData = await getTeamList()
-  console.log('TEAM DATA', teamData)
+  const employerData = await getEmployerData()
   return (
     <div>
-      <EditOrgForm
-        org={orgData}
-        teamData={teamData}
-        saveTeam={''}
-        cancelSave={''}
-      />
+      <EditOrgForm org={employerData} />
     </div>
   )
 }

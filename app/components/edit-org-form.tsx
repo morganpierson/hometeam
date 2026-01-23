@@ -1,70 +1,68 @@
 'use client'
 import {
-  PhotoIcon,
   UserCircleIcon,
-  DocumentTextIcon,
 } from '@heroicons/react/24/solid'
 import EmployeeModalList from './employee-modal-list'
 import SelectDropdown from './select-dropdown'
-import { updateOrgInfo } from '@/utils/actions'
+import { updateEmployerInfo } from '@/utils/actions'
 import { useFormState, useFormStatus } from 'react-dom'
-import React, { useState, useOptimistic, useRef } from 'react'
-import OrgTeamList from './org-team-list'
+import React, { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import AddEmployeeModal from './add-employee-modal'
-import AddTeamModal from './add-team-modal'
 import UploadImage from './upload-image'
+import { TradeCategory } from '@prisma/client'
 
-export default function EditOrgForm({
-  org,
-  saveTeam,
-  cancelSave,
-  teamData,
-}: {
-  org: any
-  saveTeam: any
-  cancelSave: any
-  teamData: any
-}) {
-  const [state, formAction] = useFormState(updateOrgInfo, {
-    name: org.name,
-    website: org.website,
+interface Employee {
+  id: string
+  firstName?: string | null
+  lastName?: string | null
+  email?: string | null
+  tradeCategory?: TradeCategory | null
+}
+
+interface Employer {
+  id: string
+  name: string
+  website?: string | null
+  logo?: string | null
+  contactEmail?: string | null
+  contactPhone?: string | null
+  address?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  isInsured?: boolean
+  isLicensed?: boolean
+  licenseNumber?: string | null
+  specialties?: TradeCategory[]
+  employees: Employee[]
+}
+
+interface EditOrgFormProps {
+  org: Employer
+}
+
+export default function EditOrgForm({ org }: EditOrgFormProps) {
+  const [state, formAction] = useFormState(updateEmployerInfo, {
+    success: false,
   })
   const status = useFormStatus()
-  const [optimisticState, addOptimistic] = useOptimistic(
-    state,
-    // updateFn
-    (currentState: any, optimisticValue: any) => [
-      currentState,
-      optimisticValue,
-      // merge and return new state
-      // with optimistic value
-    ]
-  )
   const ref = useRef(null)
   const router = useRouter()
   const [openAddEmployee, setOpenAddEmployee] = useState(false)
-  const [openAddTeam, setOpenAddTeam] = useState(false)
+
+  const tradeCategoryOptions = Object.values(TradeCategory)
 
   return (
     <form
       action={async (formData) => {
-        addOptimistic(formData)
         await formAction(formData)
         setTimeout(() => router.push(`/org/${org.id}`), 1000)
       }}
-      // ref={ref}
     >
       <AddEmployeeModal
         open={openAddEmployee}
         setOpen={setOpenAddEmployee}
-        teamData={teamData}
-        orgData={org}
-      />
-      <AddTeamModal
-        open={openAddTeam}
-        setOpen={setOpenAddTeam}
-        teamData={teamData}
         orgData={org}
       />
       <input hidden name="id" value={org.id} />
@@ -102,23 +100,11 @@ export default function EditOrgForm({
               >
                 Logo
               </label>
-              {/* <div className="mt-2 flex items-center gap-x-3">
-                <UserCircleIcon
-                  className="h-16 w-16 text-gray-300"
-                  aria-hidden="true"
-                />
-                <button
-                  type="button"
-                  className="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                >
-                  Change
-                </button>
-              </div> */}
               <UploadImage uploadText={'Upload'} id={'logo'} name={'logo'} />
             </div>
             <div className="sm:col-span-4">
               <label
-                htmlFor="nameame"
+                htmlFor="name"
                 className="block text-sm font-medium leading-6 text-gray-900"
               >
                 Name
@@ -131,6 +117,7 @@ export default function EditOrgForm({
                     id="name"
                     className="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
                     placeholder={org.name}
+                    defaultValue={org.name}
                   />
                 </div>
               </div>
@@ -153,9 +140,48 @@ export default function EditOrgForm({
                     name="website"
                     id="website"
                     className="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
-                    placeholder={org.website}
+                    placeholder={org.website || 'www.example.com'}
+                    defaultValue={org.website || ''}
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="sm:col-span-3">
+              <label
+                htmlFor="contactEmail"
+                className="block text-sm font-medium leading-6 text-gray-900"
+              >
+                Contact Email
+              </label>
+              <div className="mt-2">
+                <input
+                  type="email"
+                  name="contactEmail"
+                  id="contactEmail"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  placeholder="contact@example.com"
+                  defaultValue={org.contactEmail || ''}
+                />
+              </div>
+            </div>
+
+            <div className="sm:col-span-3">
+              <label
+                htmlFor="contactPhone"
+                className="block text-sm font-medium leading-6 text-gray-900"
+              >
+                Contact Phone
+              </label>
+              <div className="mt-2">
+                <input
+                  type="tel"
+                  name="contactPhone"
+                  id="contactPhone"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  placeholder="(555) 123-4567"
+                  defaultValue={org.contactPhone || ''}
+                />
               </div>
             </div>
           </div>
@@ -164,12 +190,101 @@ export default function EditOrgForm({
         <div className="grid grid-cols-1 gap-x-8 gap-y-10 border-b border-gray-900/10 pb-12 md:grid-cols-3 mt-6">
           <div>
             <h2 className="text-base font-semibold leading-7 text-gray-900">
-              Employees{' '}
+              Location
             </h2>
             <p className="mt-1 text-sm leading-6 text-gray-600">
-              Add or remove members from your organization{' '}
+              Your business address
             </p>
-            <div className="flex  w-full col-start-3 mt-4">
+          </div>
+
+          <div className="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
+            <div className="col-span-full">
+              <label
+                htmlFor="address"
+                className="block text-sm font-medium leading-6 text-gray-900"
+              >
+                Street Address
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="address"
+                  id="address"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  placeholder="123 Main St"
+                  defaultValue={org.address || ''}
+                />
+              </div>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="city"
+                className="block text-sm font-medium leading-6 text-gray-900"
+              >
+                City
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="city"
+                  id="city"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  placeholder="Austin"
+                  defaultValue={org.city || ''}
+                />
+              </div>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="state"
+                className="block text-sm font-medium leading-6 text-gray-900"
+              >
+                State
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="state"
+                  id="state"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  placeholder="TX"
+                  defaultValue={org.state || ''}
+                />
+              </div>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="zipCode"
+                className="block text-sm font-medium leading-6 text-gray-900"
+              >
+                ZIP Code
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="zipCode"
+                  id="zipCode"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  placeholder="78701"
+                  defaultValue={org.zipCode || ''}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-x-8 gap-y-10 border-b border-gray-900/10 pb-12 md:grid-cols-3 mt-6">
+          <div>
+            <h2 className="text-base font-semibold leading-7 text-gray-900">
+              Employees
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-gray-600">
+              Add or remove members from your organization
+            </p>
+            <div className="flex w-full col-start-3 mt-4">
               <button
                 className="text-indigo-600 hover:underline"
                 onClick={() => setOpenAddEmployee(true)}
@@ -180,47 +295,96 @@ export default function EditOrgForm({
             </div>
           </div>
 
-          <div className=" max-w-2xl gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
-            <EmployeeModalList teamData={teamData} org={org} />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-x-8 gap-y-10 border-b border-gray-900/10 pb-12 md:grid-cols-3 mt-6">
-          <div>
-            <h2 className="text-base font-semibold leading-7 text-gray-900">
-              Teams{' '}
-            </h2>
-            <p className="mt-1 text-sm leading-6 text-gray-600">
-              Edit teams within your organization{' '}
-            </p>
-            <div className="flex  w-full col-start-3 mt-4">
-              <button
-                className="text-indigo-600 hover:underline"
-                type="button"
-                onClick={() => setOpenAddTeam(true)}
-              >
-                + Add new team
-              </button>
-            </div>
-          </div>
-
-          <div className=" max-w-2xl gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
-            <OrgTeamList teamData={teamData} org={org} />
+          <div className="max-w-2xl gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
+            <EmployeeModalList org={org} />
           </div>
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-10 border-b border-gray-900/10 pb-12 md:grid-cols-3">
           <div>
             <h2 className="text-base font-semibold leading-7 text-gray-900">
-              Industry
+              Trade Specialties
             </h2>
             <p className="mt-1 text-sm leading-6 text-gray-600">
-              What industry does your company primarily operate in?
+              What trades does your company specialize in?
             </p>
           </div>
 
-          <div className="mt-2">
-            <SelectDropdown options={[]} />
+          <div className="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
+            <div className="col-span-full">
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {tradeCategoryOptions.map((trade) => (
+                  <label key={trade} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      name="specialties"
+                      value={trade}
+                      defaultChecked={org.specialties?.includes(trade)}
+                      className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                    />
+                    <span className="text-sm text-gray-700">
+                      {trade.replace('_', ' ')}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-10 border-b border-gray-900/10 pb-12 md:grid-cols-3">
+          <div>
+            <h2 className="text-base font-semibold leading-7 text-gray-900">
+              Verification
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-gray-600">
+              Insurance and licensing information
+            </p>
+          </div>
+
+          <div className="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
+            <div className="sm:col-span-3">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="isInsured"
+                  defaultChecked={org.isInsured}
+                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                />
+                <span className="text-sm font-medium text-gray-900">Insured</span>
+              </label>
+            </div>
+
+            <div className="sm:col-span-3">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="isLicensed"
+                  defaultChecked={org.isLicensed}
+                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                />
+                <span className="text-sm font-medium text-gray-900">Licensed</span>
+              </label>
+            </div>
+
+            <div className="sm:col-span-4">
+              <label
+                htmlFor="licenseNumber"
+                className="block text-sm font-medium leading-6 text-gray-900"
+              >
+                License Number
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="licenseNumber"
+                  id="licenseNumber"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  placeholder="License #"
+                  defaultValue={org.licenseNumber || ''}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

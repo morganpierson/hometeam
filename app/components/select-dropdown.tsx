@@ -1,23 +1,26 @@
-// export default function SelectDropdown({ options, id, name, className }) {
-//   return (
-//     <select id={id} name={name} className={className} defaultValue="Canada">
-//       {options.map((option) => (
-//         <option key={option}>{option}</option>
-//       ))}
-//     </select>
-//   )
-// }
 'use client'
 
 import { Fragment } from 'react'
 import { Menu, Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
 
-function classNames(...classes) {
+function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function SelectDropdown({ options, id, name, className }) {
+interface Option {
+  id?: string | number
+  name: string
+}
+
+interface SelectDropdownProps {
+  options: Option[]
+  id?: string
+  name?: string
+  className?: string
+}
+
+export default function SelectDropdown({ options, id, name, className }: SelectDropdownProps) {
   return (
     <Menu as="div" className="relative inline-block text-left">
       <div>
@@ -40,8 +43,8 @@ export default function SelectDropdown({ options, id, name, className }) {
         leaveTo="transform opacity-0 scale-95"
       >
         <Menu.Items className="absolute px-2  z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-          {options.map((option) => (
-            <Menu.Item>
+          {options.map((option, index) => (
+            <Menu.Item key={option.id || option.name || index}>
               {({ active }) => (
                 <a
                   href="#"

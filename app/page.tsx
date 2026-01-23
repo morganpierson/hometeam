@@ -1,45 +1,48 @@
 import { auth } from '@clerk/nextjs'
-import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { prisma } from '@/utils/db'
-
-import { createClient } from '@/utils/supabase/server'
+import { CallToAction } from '@/app/components/landing/CallToAction'
+import { Faqs } from '@/app/components/landing/Faqs'
+import { Footer } from '@/app/components/landing/Footer'
+import { Header } from '@/app/components/landing/Header'
+import { Hero } from '@/app/components/landing/Hero'
+import { Pricing } from '@/app/components/landing/Pricing'
+import { PrimaryFeatures } from '@/app/components/landing/PrimaryFeatures'
+import { SecondaryFeatures } from '@/app/components/landing/SecondaryFeatures'
 
 export default async function Home() {
   const { userId } = await auth()
-  console.log('USER ID ', userId)
-  const supabase = createClient()
-  const { data: industry } = await supabase.from('industry').select()
 
-  let match
-  let userOrg
+  // If user is logged in, redirect them to their dashboard
   if (userId) {
-    match = await prisma.user.findUnique({
+    const employee = await prisma.employee.findUnique({
       where: {
         clerkId: userId as string,
       },
     })
-    userOrg = await prisma.company.findFirst({
-      where: {
-        id: match?.companyId,
-      },
-    })
+
+    if (employee?.employerId) {
+      redirect(`/org/${employee.employerId}`)
+    } else if (employee) {
+      redirect('/onboarding')
+    } else {
+      redirect('/new-user')
+    }
   }
 
-  let href = match ? `/org/${userOrg?.name.toLowerCase()}` : '/new-user'
-
+  // Show landing page for non-authenticated users
   return (
-    <div className="h-screen w-screen bg-black flex justify-center items-center ">
-      <div>
-        <h1>HR APP HOME</h1>
-      </div>
-      <div>
-        <Link href={href}>
-          <button className="bg-blue-600 px-4 py-2 rounded-md">
-            get started
-          </button>
-        </Link>
-        {/* <pre className="text-white">{JSON.stringify(industry, null, 2)}</pre> */}
-      </div>
-    </div>
+    <>
+      <Header />
+      <main>
+        <Hero />
+        <PrimaryFeatures />
+        <SecondaryFeatures />
+        <Pricing />
+        <Faqs />
+        <CallToAction />
+      </main>
+      <Footer />
+    </>
   )
 }

@@ -1,14 +1,21 @@
 'use client'
-import MultiSelectComponent from './multiselect'
 import SingleSelect from './single-select'
-import { createNewOrg } from '@/utils/actions'
+import { createNewEmployer } from '@/utils/actions'
 import { useFormState } from 'react-dom'
 
-const CreatOrgForm = ({ companySize, industryOptions }) => {
-  const [state, formAction] = useFormState(createNewOrg, {
-    name: '',
-    size: '',
-    industries: [],
+interface Option {
+  value: string
+  label: string
+}
+
+interface CreateOrgFormProps {
+  companySize: Option[]
+  industryOptions: Option[]
+}
+
+const CreateOrgForm = ({ companySize, industryOptions }: CreateOrgFormProps) => {
+  const [state, formAction] = useFormState(createNewEmployer, {
+    success: false,
   })
 
   return (
@@ -36,20 +43,11 @@ const CreatOrgForm = ({ companySize, industryOptions }) => {
         <div className="flex flex-col pt-6">
           <SingleSelect
             name={'orgIndustries'}
-            labelName={'Company Industry'}
+            labelName={'Trade Specialties'}
             options={industryOptions}
             classname={'w-96 h-auto mt-2 mb-4'}
           />
         </div>
-        {/* <div className="flex flex-col pt-6">
-          <EmailListInput
-            name={'employeeList'}
-            setEmail={(e) => setEmail(e.target.value)}
-            handleAddEmail={handleAddEmail}
-            handleRemoveEmail={handleRemoveEmail}
-            emailList={emailList}
-          />
-        </div> */}
         <div className="pt-4 flex justify-end w-96 col-start-2">
           <button
             type="submit"
@@ -63,4 +61,4 @@ const CreatOrgForm = ({ companySize, industryOptions }) => {
   )
 }
 
-export default CreatOrgForm
+export default CreateOrgForm

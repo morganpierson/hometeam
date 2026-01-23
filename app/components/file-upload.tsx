@@ -5,8 +5,12 @@ import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css'
 import { useState } from 'react'
 
-const FileUpload = ({ name }) => {
-  const [file, setFile] = useState([])
+interface FileUploadProps {
+  name: string
+}
+
+const FileUpload = ({ name }: FileUploadProps) => {
+  const [file, setFile] = useState<any[]>([])
   return (
     <div>
       <FilePond

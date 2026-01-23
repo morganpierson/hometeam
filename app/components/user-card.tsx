@@ -1,14 +1,25 @@
 'use client'
 
-import { fetchUserProfile } from '@/utils/api'
+import { fetchEmployeeProfile } from '@/utils/api'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import Image, { StaticImageData } from 'next/image'
 
-const UserCard = ({ teamMember, placeholderImage }) => {
+interface TeamMember {
+  id: string
+  firstName?: string | null
+  lastName?: string | null
+  profileImage?: string | null
+}
+
+interface UserCardProps {
+  teamMember: TeamMember
+  placeholderImage: StaticImageData | string
+}
+
+const UserCard = ({ teamMember, placeholderImage }: UserCardProps) => {
   const router = useRouter()
   const handleOnClick = async () => {
-    //call fetchUserProfile api util method to call api GET request which fetches user profile info to pass to user profile page
-    const userData = await fetchUserProfile(teamMember.id)
+    const userData = await fetchEmployeeProfile(teamMember.id)
     router.push(`/org/user/${userData.id}`)
   }
   return (

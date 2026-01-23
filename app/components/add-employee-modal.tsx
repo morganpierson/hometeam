@@ -1,9 +1,19 @@
-import { Fragment, useRef, useState } from 'react'
+'use client'
+
+import { Fragment, useRef } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { CheckIcon } from '@heroicons/react/24/outline'
 import NewEmployeeForm from './new-employee-form'
 
-export default function AddEmployeeModal({ open, setOpen, teamData, orgData }) {
+interface AddEmployeeModalProps {
+  open: boolean
+  setOpen: (open: boolean) => void
+  orgData: {
+    id: string
+    name: string
+  }
+}
+
+export default function AddEmployeeModal({ open, setOpen, orgData }: AddEmployeeModalProps) {
   const cancelButtonRef = useRef(null)
 
   return (
@@ -41,7 +51,6 @@ export default function AddEmployeeModal({ open, setOpen, teamData, orgData }) {
                 <div>
                   <div className="mt-3 text-center sm:mt-5">
                     <NewEmployeeForm
-                      teamData={teamData}
                       orgData={orgData}
                       setOpen={setOpen}
                       open={open}

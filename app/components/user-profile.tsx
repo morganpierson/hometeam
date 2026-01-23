@@ -3,45 +3,99 @@ import { PencilSquareIcon } from '@heroicons/react/20/solid'
 import { ArrowDownTrayIcon, UserCircleIcon } from '@heroicons/react/24/outline'
 import React, { useState, useOptimistic, useRef } from 'react'
 import { useFormState, useFormStatus } from 'react-dom'
-import { createNewUser, updateUserInfo } from '@/utils/actions'
+import { updateEmployeeInfo } from '@/utils/actions'
 import { updateUserProfile } from '@/utils/api'
-import SelectDropdown from './select-dropdown'
 import Image from 'next/image'
+import { TradeCategory } from '@prisma/client'
+import type { Decimal } from '@prisma/client/runtime/library'
 
-const UserProfile = ({ user, org, isOnMarketplace = true }) => {
+// Allow Prisma Decimal or number types
+type DecimalLike = number | Decimal | { toString(): string } | null | undefined
+
+interface Employee {
+  id: string
+  firstName?: string | null
+  lastName?: string | null
+  email?: string | null
+  phone?: string | null
+  profileImage?: string | null
+  resume?: string | null
+  resumeSummary?: string | null
+  bio?: string | null
+  location?: string | null
+  tradeCategory?: TradeCategory | null
+  yearsExperience?: number | null
+  hourlyRate?: DecimalLike
+  avgRating?: DecimalLike
+  isAvailableForHire?: boolean
+  isBackgroundChecked?: boolean
+  isInsured?: boolean
+  employer?: {
+    id: string
+    name: string
+  } | null
+  certifications?: Array<{
+    id: string
+    name: string
+    issuingBody?: string | null
+    verified: boolean
+  }>
+  hireOffers?: Array<{
+    offeredRate?: DecimalLike
+    rateType?: string | null
+  }>
+  ownedPortfolioItems?: Array<{
+    id: string
+    title: string
+    coverImage?: string | null
+  }>
+  contributions?: Array<{
+    id: string
+    title: string
+    coverImage?: string | null
+  }>
+}
+
+interface UserProfileProps {
+  user: Employee | null
+  org?: string | null
+  isOnMarketplace?: boolean
+}
+
+const UserProfile = ({ user, org, isOnMarketplace = true }: UserProfileProps) => {
   console.log('USER PROFILE', user)
   console.log('ORG', org)
 
   const [isEditing, setIsEditing] = useState(false)
-  const [tempImage, setTempImage] = useState('')
 
-  const [state, formAction] = useFormState(updateUserInfo, {
-    name: user.name,
-    email: user.email,
-    availableForAcquisition: user.availableForAcquisition,
-    acquisitionOffer: user.acquisitionOffer,
+  const [state, formAction] = useFormState(updateEmployeeInfo, {
+    success: false,
   })
   const status = useFormStatus()
 
   const listEmployee = async () => {
-    await updateUserProfile(user.id, {
-      availableForAcquisition: !user.availableForAcquisition,
-    })
+    if (user) {
+      await updateUserProfile(user.id, {
+        isAvailableForHire: !user.isAvailableForHire,
+      })
+    }
   }
 
-  const options = ['Requesting', 'Offering']
+  const tradeCategoryOptions = Object.values(TradeCategory)
 
   const [optimisticState, addOptimistic] = useOptimistic(
     state,
-    // updateFn
     (currentState: any, optimisticValue: any) => [
       currentState,
       optimisticValue,
-      // merge and return new state
-      // with optimistic value
     ]
   )
   const ref = useRef(null)
+
+  if (!user) {
+    return <div>Employee not found</div>
+  }
+
   return (
     <>
       <form
@@ -53,12 +107,11 @@ const UserProfile = ({ user, org, isOnMarketplace = true }) => {
         ref={ref}
         className="ml-0 col-span-3"
       >
-        <input type="hidden" name="orgId" value={org} id="orgId" />
+        <input type="hidden" name="employerId" value={org || ''} id="employerId" />
         <input type="hidden" name="id" value={user.id} id="id" />
         <div className="px-4 sm:px-0 flex">
-          {/* <EditUserModal open={open} setOpen={setOpen} user={user} /> */}
           {user.profileImage ? (
-            <Image src={user.profileImage} height={96} width={96} alt="" />
+            <Image src={user.profileImage} height={96} width={96} alt="" className="rounded-full" />
           ) : (
             <UserCircleIcon
               className="h-24 w-24 text-gray-300"
@@ -69,21 +122,48 @@ const UserProfile = ({ user, org, isOnMarketplace = true }) => {
             <h1 className="font-semibold leading-7 text-gray-900 text-2xl">
               {user.firstName} {user.lastName}
             </h1>
-            <p className="mt-1 max-w-2xl  leading-6 text-gray-500 text-lg">
-              {user.role}
+            <p className="mt-1 max-w-2xl leading-6 text-gray-500 text-lg">
+              {user.tradeCategory?.replace('_', ' ') || 'Trade Worker'}
             </p>
-            <div className="flex items-center mt-4 hover:cursor-pointer">
-              <div className="flex text-indigo-600 hover:text-indigo-500 mr-4">
-                <ArrowDownTrayIcon className="h-5 w-5  " aria-hidden="true" />
-                <div className="ml-2 flex min-w-0 flex-1 gap-2">
-                  <a className="font-medium " href={user.resume}>
-                    {user.firstName} {user.lastName}'s resume
-                  </a>
+            {user.resume && (
+              <div className="flex items-center mt-4 hover:cursor-pointer">
+                <div className="flex text-indigo-600 hover:text-indigo-500 mr-4">
+                  <ArrowDownTrayIcon className="h-5 w-5" aria-hidden="true" />
+                  <div className="ml-2 flex min-w-0 flex-1 gap-2">
+                    <a className="font-medium" href={user.resume}>
+                      {user.firstName} {user.lastName}&apos;s resume
+                    </a>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
+
+        {/* Trust badges */}
+        <div className="flex gap-4 mt-4 px-4">
+          {user.isBackgroundChecked && (
+            <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+              Background Checked
+            </span>
+          )}
+          {user.isInsured && (
+            <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
+              Insured
+            </span>
+          )}
+          {user.yearsExperience && (
+            <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+              {user.yearsExperience} years experience
+            </span>
+          )}
+          {user.hourlyRate && (
+            <span className="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">
+              ${Number(user.hourlyRate).toFixed(0)}/hr
+            </span>
+          )}
+        </div>
+
         {!isOnMarketplace && (
           <div className="flex justify-end">
             {!isEditing ? (
@@ -99,7 +179,7 @@ const UserProfile = ({ user, org, isOnMarketplace = true }) => {
               <div>
                 <button
                   type="submit"
-                  className=" rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                  className="rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
                 >
                   {status.pending ? 'Updating...' : 'Save Changes'}
                 </button>
@@ -128,7 +208,8 @@ const UserProfile = ({ user, org, isOnMarketplace = true }) => {
                     name="email"
                     id="email"
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                    placeholder={user.email}
+                    placeholder={user.email || ''}
+                    defaultValue={user.email || ''}
                   />
                 </div>
               ) : (
@@ -137,151 +218,166 @@ const UserProfile = ({ user, org, isOnMarketplace = true }) => {
                 </dd>
               )}
             </div>
+
             <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
               <dt className="text-sm font-medium leading-6 text-gray-900">
-                Acquisition Offer
+                Trade Category
               </dt>
-              {user.acquisitionOffer && !isEditing ? (
-                <dd className="mt-1 flex text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                  <span className="flex-grow">
-                    {user.company.name} is{' '}
-                    <strong>{user.acquisitionOffer.offerType}</strong> $
-                    {`${user.acquisitionOffer.amount}`} for the acquisition of{' '}
-                    {user.firstName} {user.lastName}
-                  </span>
-                </dd>
-              ) : isEditing ? (
-                <div className="flex items-center w-full">
-                  {/* <SelectDropdown
-                    options={options}
-                    id={'offerType'}
-                    name={'offerType'}
-                    className={undefined}
-                  /> */}
-                  <select name="offerType" id="offerType">
-                    {options.map((option) => (
-                      <option key={option}>{option}</option>
+              {isEditing ? (
+                <div>
+                  <select
+                    name="tradeCategory"
+                    id="tradeCategory"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    defaultValue={user.tradeCategory || ''}
+                  >
+                    <option value="">Select a trade</option>
+                    {tradeCategoryOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option.replace('_', ' ')}
+                      </option>
                     ))}
                   </select>
-                  <span className="ml-4">
-                    $
-                    <input
-                      type="number"
-                      name="offerAmount"
-                      id="offerAmount"
-                      className="ml-1 w-48 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                      placeholder="10,000"
-                    />
-                  </span>
                 </div>
               ) : (
                 <dd className="mt-1 flex text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                   <span className="flex-grow">
-                    {user.company.name} has not yet created an offer for{' '}
-                    {user.firstName} {user.lastName}
-                    's acquisition
+                    {user.tradeCategory?.replace('_', ' ') || 'Not specified'}
                   </span>
                 </dd>
               )}
-              {/* {isEditing ? (
-                <div className="flex items-center w-full">
-                  <SelectDropdown
-                    options={options}
-                    id={'offerType'}
-                    name={'offerType'}
+            </div>
+
+            <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+              <dt className="text-sm font-medium leading-6 text-gray-900">
+                Hourly Rate
+              </dt>
+              {isEditing ? (
+                <div className="flex items-center">
+                  <span className="mr-2">$</span>
+                  <input
+                    type="number"
+                    name="hourlyRate"
+                    id="hourlyRate"
+                    className="block w-32 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    placeholder="50"
+                    defaultValue={user.hourlyRate ? Number(user.hourlyRate) : ''}
                   />
-                  <span className="ml-4">
-                    $
-                    <input
-                      type="number"
-                      name="offerAmount"
-                      id="offerAmount"
-                      className="ml-1 w-48 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                      placeholder="10,000"
-                    />
-                  </span>
+                  <span className="ml-2">/hr</span>
                 </div>
               ) : (
                 <dd className="mt-1 flex text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                   <span className="flex-grow">
-                    {user.company.name} is{' '}
-                    <strong>{user.acquisitionOffer.offerType}</strong> $
-                    {`${user.acquisitionOffer.amount}`} for the acquisition of{' '}
-                    {user.name}
+                    {user.hourlyRate ? `$${Number(user.hourlyRate).toFixed(0)}/hr` : 'Not specified'}
                   </span>
                 </dd>
-              )} */}
+              )}
             </div>
+
             <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
               <dt className="text-sm font-medium leading-6 text-gray-900">
-                Employee Contributions
+                Certifications
+              </dt>
+              <dd className="mt-1 flex text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+                <div className="flex flex-wrap gap-2">
+                  {user.certifications && user.certifications.length > 0 ? (
+                    user.certifications.map((cert) => (
+                      <span
+                        key={cert.id}
+                        className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
+                          cert.verified
+                            ? 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20'
+                            : 'bg-gray-50 text-gray-600 ring-1 ring-inset ring-gray-500/10'
+                        }`}
+                      >
+                        {cert.name}
+                        {cert.verified && ' ✓'}
+                      </span>
+                    ))
+                  ) : (
+                    <span>No certifications listed</span>
+                  )}
+                </div>
+              </dd>
+            </div>
+
+            <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+              <dt className="text-sm font-medium leading-6 text-gray-900">
+                Bio / Summary
               </dt>
               {isEditing ? (
                 <div>
                   <textarea
-                    name="projects"
-                    id="projects"
+                    name="bio"
+                    id="bio"
+                    rows={4}
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                    placeholder="Fugiat ipsum ipsum deserunt culpa aute sint do nostrud anim
-                incididunt cillum culpa consequat. Excepteur qui ipsum aliquip
-                consequat sint. Sit id mollit nulla mollit nostrud in ea officia
-                proident. Irure nostrud pariatur mollit ad adipisicing
-                reprehenderit deserunt qui eu."
+                    placeholder="Tell us about your experience and skills..."
+                    defaultValue={user.bio || user.resumeSummary || ''}
                   />
                 </div>
               ) : (
                 <dd className="mt-1 flex text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
                   <span className="flex-grow">
-                    Fugiat ipsum ipsum deserunt culpa aute sint do nostrud anim
-                    incididunt cillum culpa consequat. Excepteur qui ipsum
-                    aliquip consequat sint. Sit id mollit nulla mollit nostrud
-                    in ea officia proident. Irure nostrud pariatur mollit ad
-                    adipisicing reprehenderit deserunt qui eu.
+                    {user.bio || user.resumeSummary || 'No bio provided'}
                   </span>
                 </dd>
               )}
             </div>
-            <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-              <dt className="text-sm font-medium leading-6 text-gray-900">
-                Referral Message
-              </dt>
-              {isEditing ? (
-                <div>
-                  <textarea
-                    name="referral"
-                    id="referral"
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                    placeholder="Fugiat ipsum ipsum deserunt culpa aute sint do nostrud anim
-                incididunt cillum culpa consequat. Excepteur qui ipsum aliquip
-                consequat sint. Sit id mollit nulla mollit nostrud in ea officia
-                proident. Irure nostrud pariatur mollit ad adipisicing
-                reprehenderit deserunt qui eu."
-                  />
-                </div>
-              ) : (
-                <dd className="mt-1 flex text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-                  <span className="flex-grow">
-                    Fugiat ipsum ipsum deserunt culpa aute sint do nostrud anim
-                    incididunt cillum culpa consequat. Excepteur qui ipsum
-                    aliquip consequat sint. Sit id mollit nulla mollit nostrud
-                    in ea officia proident. Irure nostrud pariatur mollit ad
-                    adipisicing reprehenderit deserunt qui eu.
-                  </span>
+
+            {/* Portfolio Section */}
+            {(user.ownedPortfolioItems?.length || user.contributions?.length) ? (
+              <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                <dt className="text-sm font-medium leading-6 text-gray-900">
+                  Portfolio
+                </dt>
+                <dd className="mt-1 sm:col-span-2 sm:mt-0">
+                  <div className="grid grid-cols-3 gap-4">
+                    {user.ownedPortfolioItems?.map((item) => (
+                      <div key={item.id} className="relative">
+                        {item.coverImage && (
+                          <Image
+                            src={item.coverImage}
+                            alt={item.title}
+                            width={150}
+                            height={100}
+                            className="rounded-md object-cover"
+                          />
+                        )}
+                        <p className="text-xs mt-1 text-gray-600">{item.title}</p>
+                      </div>
+                    ))}
+                    {user.contributions?.map((item) => (
+                      <div key={item.id} className="relative">
+                        {item.coverImage && (
+                          <Image
+                            src={item.coverImage}
+                            alt={item.title}
+                            width={150}
+                            height={100}
+                            className="rounded-md object-cover"
+                          />
+                        )}
+                        <p className="text-xs mt-1 text-gray-600">{item.title}</p>
+                        <span className="text-xs text-green-600">Contributed</span>
+                      </div>
+                    ))}
+                  </div>
                 </dd>
-              )}
-            </div>
+              </div>
+            ) : null}
           </dl>
         </div>
       </form>
+
       {!isOnMarketplace && (
         <div className="flex justify-end mt-6 mb-8">
           <button
             type="button"
-            disabled={user.acquisitionOffer === null}
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:bg-slate-50 disabled:text-slate-500 disabled:border-slate-200 disabled:shadow-none"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             onClick={listEmployee}
           >
-            {user.availableForAcquisition
+            {user.isAvailableForHire
               ? 'Unlist from Marketplace'
               : 'List on Marketplace'}
           </button>

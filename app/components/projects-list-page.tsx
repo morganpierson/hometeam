@@ -176,7 +176,21 @@ const projects = [
   },
 ]
 
-export default function ProjectsListPage({ projects }) {
+interface Project {
+  id: string | number
+  title: string
+  href?: string
+  description?: string
+  status?: string
+  teams?: Array<{ id: string | number; name: string }>
+  users?: Array<{ id: string | number; name?: string; profileImage?: string }>
+}
+
+interface ProjectsListPageProps {
+  projects: Project[]
+}
+
+export default function ProjectsListPage({ projects }: ProjectsListPageProps) {
   return (
     <div className="flex flex-col w-11/12">
       <ul role="list" className="divide-y divide-gray-100 w-11/12">
@@ -200,7 +214,7 @@ export default function ProjectsListPage({ projects }) {
                   <circle cx={1} cy={1} r={1} />
                 </svg>
                 <div className="flex gap-2">
-                  {project.teams.map((team) => (
+                  {project.teams?.map((team: { id: string | number; name: string }) => (
                     <p
                       key={team.id}
                       className="text-xs text-gray-500 font-normal"
@@ -225,12 +239,12 @@ export default function ProjectsListPage({ projects }) {
             <dl className="flex w-full flex-none justify-between gap-x-8 sm:w-auto">
               <div className="flex -space-x-0.5">
                 <dt className="sr-only">Commenters</dt>
-                {project.users.map((user) => (
+                {project.users?.map((user: { id: string | number; name?: string; profileImage?: string }) => (
                   <dd key={user.id}>
                     <img
                       className={`h-6 w-6 rounded-full bg-gray-50 ring-2 ring-white `}
                       src={user.profileImage}
-                      alt={user.name}
+                      alt={user.name || ''}
                     />
                   </dd>
                 ))}

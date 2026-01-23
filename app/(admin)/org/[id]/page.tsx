@@ -1,17 +1,12 @@
-import { getUserByClerkID } from '@/utils/auth'
+import { getEmployeeByClerkID } from '@/utils/auth'
 import { prisma } from '@/utils/db'
-import { clerkClient } from '@clerk/nextjs'
-import Link from 'next/link'
-import UserCard from '@/app/components/user-card'
-import { PlusIcon } from '@heroicons/react/16/solid'
 import TeamListPage from '@/app/components/team-list-page'
 
-const getOrgData = async () => {
-  const user = await getUserByClerkID()
-  console.log('USER', user)
-  const data = await prisma.company.findUniqueOrThrow({
+const getEmployerData = async () => {
+  const employee = await getEmployeeByClerkID()
+  const data = await prisma.employer.findUniqueOrThrow({
     where: {
-      id: user.companyId,
+      id: employee?.employerId ?? undefined,
     },
     include: {
       employees: true,
@@ -21,44 +16,39 @@ const getOrgData = async () => {
   return data
 }
 
-const getTeamList = async () => {
-  //query the list of all teams within the organization
-  const user = await getUserByClerkID()
-  const currentOrg = await getOrgData()
-  const teams = await prisma.team.findMany({
+const getProjectAssignments = async () => {
+  const currentEmployer = await getEmployerData()
+
+  const projects = await prisma.project.findMany({
     where: {
-      companyId: currentOrg.id,
+      employers: {
+        some: {
+          id: currentEmployer.id,
+        },
+      },
     },
     include: {
-      members: true,
+      employees: true,
+      client: true,
     },
   })
-  const sortedTeams = teams.sort((a, b) => {
-    if (a.name < b.name) {
+
+  const sortedProjects = projects.sort((a, b) => {
+    if (a.title < b.title) {
       return -1
     }
-    if (a.name > b.name) {
+    if (a.title > b.title) {
       return 1
     }
     return 0
   })
-  return sortedTeams
+  return sortedProjects
 }
 
-const getUserData = async () => {
-  const users = await prisma.user.findMany({
-    include: {
-      team: true,
-    },
-  })
-
-  return users
-}
-
-const OrgDetailsPage = async ({ params }) => {
-  const orgData = await getOrgData()
-  const teamData = await getTeamList()
-  return <TeamListPage teamData={teamData} orgData={orgData} />
+const OrgDetailsPage = async ({ params }: { params: { id: string } }) => {
+  const employerData = await getEmployerData()
+  const projectData = await getProjectAssignments()
+  return <TeamListPage projectData={projectData} orgData={employerData} />
 }
 
 export default OrgDetailsPage

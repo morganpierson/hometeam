@@ -1,11 +1,17 @@
+'use client'
 import { useState } from 'react'
 import { Switch } from '@headlessui/react'
 
-function classNames(...classes) {
+function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function Example({ header, subHeader }) {
+interface ToggleButtonProps {
+  header: string
+  subHeader: string
+}
+
+export default function ToggleButton({ header, subHeader }: ToggleButtonProps) {
   const [enabled, setEnabled] = useState(false)
 
   return (

@@ -42,17 +42,16 @@ export default async function OrgLayout({
 }: {
   children: React.ReactNode
 }) {
-  console.log('LAYOUT RENDEREDDD')
   // const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const user = await getUserByClerkID()
   const orgData = await fetchOrgData()
 
-  console.log('LAYOUT ORG DATA', orgData)
-
   return (
     <>
-      <SideBarNav children={children} orgData={orgData} user={user} />
+      <SideBarNav orgData={orgData} user={user}>
+        {children}
+      </SideBarNav>
     </>
   )
 }

@@ -6,30 +6,67 @@ import OfferMessageModal from './offer-message-modal'
 import { useFormState } from 'react-dom'
 import { useState } from 'react'
 import Link from 'next/link'
+import { TradeCategory } from '@prisma/client'
+import type { Decimal } from '@prisma/client/runtime/library'
 
-const UserMarketplaceCard = ({ user, companyImage, company }) => {
+// Allow Prisma Decimal or number types
+type DecimalLike = number | Decimal | { toString(): string } | null | undefined
+
+interface Employee {
+  id: string
+  firstName?: string | null
+  lastName?: string | null
+  profileImage?: string | null
+  tradeCategory?: TradeCategory | null
+  yearsExperience?: number | null
+  hourlyRate?: DecimalLike
+  location?: string | null
+  employer?: {
+    id: string
+    name: string
+    logo?: string | null
+  } | null
+  hireOffers?: Array<{
+    offeredRate?: DecimalLike
+    rateType?: string | null
+  }>
+  certifications?: Array<{
+    name: string
+    verified: boolean
+  }>
+}
+
+interface UserMarketplaceCardProps {
+  user: Employee
+  employerImage?: string | null
+  employer?: {
+    id: string
+    name: string
+    logo?: string | null
+  } | null
+}
+
+const UserMarketplaceCard = ({ user, employerImage, employer }: UserMarketplaceCardProps) => {
   const [state, formAction] = useFormState(saveCandidate, {
-    userId: user.id,
-    profileImage: user.profileImage,
-    companyImage: companyImage,
-    companyName: user.company?.name ? user.company.name : company.name,
-    teamName: user.team?.name ? user.team.name : '',
-    offerType: user.acquisitionOffer.offerType,
-    amount: user.acquisitionOffer.amount,
+    success: false,
   })
 
   const [open, setOpen] = useState(false)
+
+  const displayEmployerName = user.employer?.name || employer?.name || 'Independent'
+  const displayEmployerImage = employerImage || user.employer?.logo
+
   return (
-    <form action={saveCandidate}>
+    <form action={formAction}>
       <OfferMessageModal
         open={open}
         setOpen={setOpen}
         candidate={user}
-        company={company}
+        employer={employer || user.employer}
       />
 
-      <input type="hidden" name="userId" value={user.id} />
-      <div className="flex flex-col  hover:shadow-sm hover:cursor-pointer border border-slate-200 rounded-md bg-zinc-50 pb-12">
+      <input type="hidden" name="employeeId" value={user.id} />
+      <div className="flex flex-col hover:shadow-sm hover:cursor-pointer border border-slate-200 rounded-md bg-zinc-50 pb-12">
         <Link href={`/marketplace/user/${user.id}`}>
           <div className="flex items-center gap-2 p-4 justify-between">
             <div className="flex items-center">
@@ -38,7 +75,7 @@ const UserMarketplaceCard = ({ user, companyImage, company }) => {
                   <Image
                     className="h-20 w-20 rounded-full bg-gray-50 ring-2 ring-white"
                     src={user.profileImage}
-                    alt={user.name}
+                    alt={`${user.firstName} ${user.lastName}`}
                     height={80}
                     width={80}
                   />
@@ -48,11 +85,11 @@ const UserMarketplaceCard = ({ user, companyImage, company }) => {
                     aria-hidden="true"
                   />
                 )}
-                {companyImage ? (
+                {displayEmployerImage ? (
                   <Image
                     className="h-10 w-10 rounded-full bg-gray-50 ring-2 ring-white"
-                    src={companyImage}
-                    alt={`${companyImage} logo`}
+                    src={displayEmployerImage}
+                    alt={`${displayEmployerName} logo`}
                     height={40}
                     width={40}
                   />
@@ -66,17 +103,19 @@ const UserMarketplaceCard = ({ user, companyImage, company }) => {
               <div className="flex flex-col items-start ml-4">
                 <div className="flex flex-col items-start mb-2">
                   <p className="text-xl font-medium text-gray-900">
-                    {user.name}
+                    {user.firstName} {user.lastName}
                   </p>
                   <p className="text-md font-light text-gray-900">
-                    {user.company?.name ? user.company.name : company.name}
+                    {displayEmployerName}
                   </p>
                 </div>
-                <div className="bg-cyan-200 rounded-3xl border border-cyan-600">
-                  <p className="text-xs font-normal p-1 text-cyan-950">
-                    {user.team?.name ? user.team.name : ''}
-                  </p>
-                </div>
+                {user.tradeCategory && (
+                  <div className="bg-cyan-200 rounded-3xl border border-cyan-600">
+                    <p className="text-xs font-normal p-1 text-cyan-950">
+                      {user.tradeCategory.replace('_', ' ')}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -97,23 +136,41 @@ const UserMarketplaceCard = ({ user, companyImage, company }) => {
           </div>
         </Link>
         <div className="border border-slate-200 mx-4 rounded-sm font-medium flex mt-8 py-3 px-4 justify-between">
-          <div>
-            <p className="p-2">
-              {user.company?.name ? user.company.name : company.name} is{' '}
-              <span
-                className={`${
-                  user.acquisitionOffer.offerType.toLowerCase() === 'offering'
-                    ? 'text-green-600'
-                    : 'text-red-600'
-                } font-semibold`}
-              >
-                {user.acquisitionOffer.offerType.toLowerCase()}
-              </span>{' '}
-              ${user.acquisitionOffer.amount} for the acquisition of{' '}
-              {user.firstName} {user.lastName}
-            </p>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-4">
+              {user.yearsExperience && (
+                <span className="text-sm text-gray-600">
+                  {user.yearsExperience} years exp.
+                </span>
+              )}
+              {user.hourlyRate && (
+                <span className="text-sm font-semibold text-green-600">
+                  ${Number(user.hourlyRate).toFixed(0)}/hr
+                </span>
+              )}
+              {user.location && (
+                <span className="text-sm text-gray-500">{user.location}</span>
+              )}
+            </div>
+            {user.certifications && user.certifications.length > 0 && (
+              <div className="flex gap-2">
+                {user.certifications.slice(0, 3).map((cert, idx) => (
+                  <span
+                    key={idx}
+                    className={`text-xs px-2 py-1 rounded ${
+                      cert.verified
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    {cert.name}
+                    {cert.verified && ' ✓'}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
             <button
               type="submit"
               className="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
@@ -139,7 +196,7 @@ const UserMarketplaceCard = ({ user, companyImage, company }) => {
                   d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
                 />
               </svg>
-              Message
+              Contact
             </button>
           </div>
         </div>

@@ -1,20 +1,19 @@
 import CreateOrgForm from '@/app/components/create-org-form'
-import { prisma } from '@/utils/db'
+import { TradeCategory } from '@prisma/client'
 
 const OrgCreate = async () => {
-  const industryOptions = await (
-    await prisma.industry.findMany()
-  )
-    .map((ind) => {
-      return { value: ind.name, label: ind.name }
-    })
+  // Use TradeCategory enum values instead of industry table
+  const tradeCategoryOptions = Object.values(TradeCategory)
+    .map((category) => ({
+      value: category,
+      label: category.replace('_', ' '),
+    }))
     .sort((a, b) => {
-      if (a.value.toLowerCase() < b.value.toLowerCase()) {
+      if (a.label.toLowerCase() < b.label.toLowerCase()) {
         return -1
-      } else if (a.value.toLowerCase() > b.value.toLowerCase()) {
+      } else if (a.label.toLowerCase() > b.label.toLowerCase()) {
         return 1
       }
-
       return 0
     })
 
@@ -30,7 +29,7 @@ const OrgCreate = async () => {
     <div className="p-12">
       <CreateOrgForm
         companySize={companySize}
-        industryOptions={industryOptions}
+        industryOptions={tradeCategoryOptions}
       />
     </div>
   )

@@ -3,16 +3,23 @@
 import { UserCircleIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 
-export default function UploadImage({ uploadText, id, name }) {
+interface UploadImageProps {
+  uploadText: string
+  id: string
+  name: string
+}
+
+export default function UploadImage({ uploadText, id, name }: UploadImageProps) {
   const [image, setImage] = useState('')
-  function handleChange(e: any) {
-    console.log(e.target.files)
-    setImage(URL.createObjectURL(e.target.files[0]))
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files[0]) {
+      setImage(URL.createObjectURL(e.target.files[0]))
+    }
   }
   return (
     <div className="mt-2 flex items-center gap-x-3">
       {image ? (
-        <img src={image} className="h-16 w-16 rounded-full" />
+        <img src={image} className="h-16 w-16 rounded-full" alt="Profile preview" />
       ) : (
         <UserCircleIcon
           className="h-16 w-16 text-gray-300"

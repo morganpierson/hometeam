@@ -1,47 +1,68 @@
-import { sendMessage } from '@/utils/actions'
-import { currentUser } from '@clerk/nextjs'
+'use client'
 
-export default async function OfferMessageForm({
+import { sendMessage } from '@/utils/actions'
+
+interface OfferMessageFormProps {
+  setOpen: (open: boolean) => void
+  candidate: {
+    id: string
+    firstName?: string | null
+    lastName?: string | null
+    employer?: {
+      id: string
+      name: string
+    } | null
+  }
+  employer?: {
+    id: string
+    name: string
+  } | null
+}
+
+export default function OfferMessageForm({
   setOpen,
   candidate,
-  company,
-}) {
-  //create a form that allows an admin to send a message to another company about a candidate
+  employer,
+}: OfferMessageFormProps) {
+  const displayEmployerName = candidate.employer?.name || employer?.name || 'Independent'
 
   return (
-    <div className="flex flex-col ">
+    <div className="flex flex-col">
       <form action={sendMessage}>
-        <input
-          type="hidden"
-          name="receivingCompany"
-          value={candidate.company.id}
-        />
-        <input type="hidden" name="candidate" value={candidate.id} />
+        <input type="hidden" name="candidateId" value={candidate.id} />
+
         <div className="flex flex-col mb-4">
           <label className="font-semibold">Candidate Name:</label>
-          {/* <input type="text" name="name" className="rounded-sm" /> */}
-          {candidate.firstName} {candidate.lastName}
+          <span className="text-gray-700">
+            {candidate.firstName} {candidate.lastName}
+          </span>
         </div>
+
         <div className="flex flex-col mb-4">
-          <label className="font-semibold">Company Name:</label>
-          {/* <input type="text" name="company" /> */}
-          {candidate.company.name}
+          <label className="font-semibold">Current Employer:</label>
+          <span className="text-gray-700">{displayEmployerName}</span>
         </div>
+
         <div className="flex flex-col">
-          <label>Message:</label>
-          <input
-            type="text-area"
+          <label htmlFor="message" className="font-semibold mb-2">
+            Message:
+          </label>
+          <textarea
             name="message"
-            className="h-24 border border-grey-500 rounded-md px-2 py-0 align-top justify-start"
+            id="message"
+            rows={4}
+            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            placeholder="Introduce yourself and explain why you're interested in this candidate..."
             required
           />
         </div>
+
         <div className="mt-5 sm:mt-6 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">
           <button
             type="submit"
             className="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:col-start-2"
           >
-            Send
+            Send Message
           </button>
           <button
             type="button"

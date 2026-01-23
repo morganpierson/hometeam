@@ -6,15 +6,19 @@ export const GET = async (
   request: Request,
   { params }: { params: { id: string } }
 ) => {
-  const userProfile = await prisma.user.findUnique({
+  const employeeProfile = await prisma.employee.findUnique({
     where: {
       id: params.id,
     },
     include: {
-      team: true,
-      company: true,
+      employer: true,
+      certifications: true,
+      hireOffers: true,
+      ownedPortfolioItems: true,
+      contributions: true,
+      serviceAreas: true,
     },
   })
   revalidatePath('/admin/org')
-  return NextResponse.json({ data: userProfile })
+  return NextResponse.json({ data: employeeProfile })
 }

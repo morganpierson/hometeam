@@ -1,9 +1,9 @@
 //generate URL for util api functions to query off of
-const createURL = (path) => {
+const createURL = (path: string) => {
   return window.location.origin + path
 }
 
-export const fetchUserProfile = async (id) => {
+export const fetchEmployeeProfile = async (id: string) => {
   const res = await fetch(
     new Request(createURL(`/api/user/${id}`), {
       method: 'GET',
@@ -11,16 +11,16 @@ export const fetchUserProfile = async (id) => {
   )
   if (res.ok) {
     const data = await res.json()
-    console.log('OKAYYY DATA ', data)
     return data.data
   } else {
-    console.log('NOOOO')
     throw new Error('Something went wrong on API server!')
   }
 }
 
-export const updateUserProfile = async (id, content) => {
-  console.log('CONTENT', content)
+// Legacy alias
+export const fetchUserProfile = fetchEmployeeProfile
+
+export const updateEmployeeProfile = async (id: string, content: Record<string, unknown>) => {
   const res = await fetch(
     new Request(createURL(`/api/user/${id}`), {
       method: 'PATCH',
@@ -29,15 +29,16 @@ export const updateUserProfile = async (id, content) => {
   )
   if (res.ok) {
     const data = await res.json()
-    console.log(data.data)
     return data.data
   } else {
     throw new Error('Something went wrong on API server!')
   }
 }
 
-export const createNewOrg = async (formData) => {
-  console.log('CREATING NEW ORG!!!')
+// Legacy alias
+export const updateUserProfile = updateEmployeeProfile
+
+export const createNewOrg = async (formData: FormData) => {
   const res = await fetch(
     new Request(createURL('/api/org/create'), {
       method: 'POST',
@@ -46,14 +47,13 @@ export const createNewOrg = async (formData) => {
   )
   if (res.ok) {
     const data = await res.json()
-    console.log(data.data)
     return data.data
   } else {
     throw new Error('Something went wrong on API server!')
   }
 }
 
-export const deleteUserProfile = async (id, orgId) => {
+export const deleteEmployeeProfile = async (id: string, orgId: string) => {
   const res = await fetch(
     new Request(createURL(`/api/user/${id}`), {
       method: 'DELETE',
@@ -62,9 +62,11 @@ export const deleteUserProfile = async (id, orgId) => {
   )
   if (res.ok) {
     const data = await res.json()
-    console.log(data.data)
     return data.data
   } else {
     throw new Error('Something went wrong on API server!')
   }
 }
+
+// Legacy alias
+export const deleteUserProfile = deleteEmployeeProfile

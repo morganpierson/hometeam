@@ -1,6 +1,20 @@
 'use client'
 import { useState } from 'react'
-import Select from 'react-select'
+import Select, { MultiValue } from 'react-select'
+
+interface Option {
+  value: string
+  label: string
+}
+
+interface MultiSelectComponentProps {
+  options: Option[]
+  classname?: string
+  name: string
+  labelName: string
+  selectedOptions: MultiValue<Option>
+  handleSelectChange: (selected: MultiValue<Option>) => void
+}
 
 const MultiSelectComponent = ({
   options,
@@ -9,13 +23,7 @@ const MultiSelectComponent = ({
   labelName,
   selectedOptions,
   handleSelectChange,
-}) => {
-  // const [selectedOptions, setSelectedOptions] = useState([])
-
-  // const handleSelectChange = (selectedValues) => {
-  //   setSelectedOptions(selectedValues)
-  // }
-
+}: MultiSelectComponentProps) => {
   return (
     <div>
       <label htmlFor={name}>{labelName}</label>
