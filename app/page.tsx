@@ -1,14 +1,11 @@
 import { auth } from '@clerk/nextjs'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/utils/db'
-import { CallToAction } from '@/app/components/landing/CallToAction'
-import { Faqs } from '@/app/components/landing/Faqs'
 import { Footer } from '@/app/components/landing/Footer'
 import { Header } from '@/app/components/landing/Header'
 import { Hero } from '@/app/components/landing/Hero'
-import { Pricing } from '@/app/components/landing/Pricing'
-import { PrimaryFeatures } from '@/app/components/landing/PrimaryFeatures'
-import { SecondaryFeatures } from '@/app/components/landing/SecondaryFeatures'
+import { RoleSelector } from '@/app/components/landing/RoleSelector'
+import { Faqs } from '@/app/components/landing/Faqs'
 
 export default async function Home() {
   const { userId } = await auth()
@@ -36,11 +33,8 @@ export default async function Home() {
       <Header />
       <main>
         <Hero />
-        <PrimaryFeatures />
-        <SecondaryFeatures />
-        <Pricing />
+        <RoleSelector />
         <Faqs />
-        <CallToAction />
       </main>
       <Footer />
     </>
