@@ -1,10 +1,10 @@
 import { fetchMarketplaceEmployees } from '@/utils/actions'
-import UserMarketplaceList from '@/app/components/user-marketplace-list'
+import MarketplaceContent from './marketplace-content'
 
 const MarketplacePage = async () => {
   const employees = await fetchMarketplaceEmployees()
 
-  return <UserMarketplaceList users={employees} />
+  return <MarketplaceContent employees={employees} />
 }
 
 export default MarketplacePage

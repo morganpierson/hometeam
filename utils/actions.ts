@@ -302,40 +302,62 @@ export const updateEmployerInfo = async (
   formData: FormData
 ): Promise<ActionResult> => {
   try {
-    const logoFile = formData.get('logo') as File
+    const logoFile = formData.get('logo') as File | null
+    const employerId = formData.get('id')?.toString()
 
     const currentEmployer = await prisma.employer.findFirst({
       where: {
-        id: formData.get('id')?.toString(),
+        id: employerId,
       },
     })
 
-    const logoBlob = await put(
-      `logos/${currentEmployer?.name}/${logoFile.name}`,
-      logoFile,
-      {
-        access: 'public',
-      }
-    )
+    if (!currentEmployer) {
+      return { success: false, error: 'Employer not found' }
+    }
+
+    // Only upload logo if a new file is provided
+    let logoUrl = currentEmployer.logo
+    if (logoFile && logoFile.size > 0) {
+      const logoBlob = await put(
+        `logos/${currentEmployer.name}/${logoFile.name}`,
+        logoFile,
+        {
+          access: 'public',
+        }
+      )
+      logoUrl = logoBlob.url
+    }
+
+    // Parse specialties from form (multiple checkbox values)
+    const specialtiesEntries = formData.getAll('specialties')
+    const specialties = specialtiesEntries.length > 0
+      ? specialtiesEntries.map(s => s.toString() as TradeCategory)
+      : currentEmployer.specialties
 
     await prisma.employer.update({
       where: {
-        id: formData.get('id')?.toString(),
+        id: employerId,
       },
       data: {
-        name: formData.get('name')?.toString() || currentEmployer?.name || '',
-        website: formData.get('website')?.toString() || currentEmployer?.website || '',
-        logo: logoBlob.url ? logoBlob.url : currentEmployer?.logo || '',
-        description: formData.get('description')?.toString() || currentEmployer?.description,
-        contactEmail: formData.get('contactEmail')?.toString() || currentEmployer?.contactEmail,
-        contactPhone: formData.get('contactPhone')?.toString() || currentEmployer?.contactPhone,
-        city: formData.get('city')?.toString() || currentEmployer?.city,
-        state: formData.get('state')?.toString() || currentEmployer?.state,
-        zipCode: formData.get('zipCode')?.toString() || currentEmployer?.zipCode,
+        name: formData.get('name')?.toString() || currentEmployer.name,
+        website: formData.get('website')?.toString() ?? currentEmployer.website,
+        logo: logoUrl,
+        description: formData.get('description')?.toString() ?? currentEmployer.description,
+        contactEmail: formData.get('contactEmail')?.toString() ?? currentEmployer.contactEmail,
+        contactPhone: formData.get('contactPhone')?.toString() ?? currentEmployer.contactPhone,
+        address: formData.get('address')?.toString() ?? currentEmployer.address,
+        city: formData.get('city')?.toString() ?? currentEmployer.city,
+        state: formData.get('state')?.toString() ?? currentEmployer.state,
+        zipCode: formData.get('zipCode')?.toString() ?? currentEmployer.zipCode,
+        specialties: specialties,
+        isInsured: formData.get('isInsured') === 'on',
+        isLicensed: formData.get('isLicensed') === 'on',
+        licenseNumber: formData.get('licenseNumber')?.toString() ?? currentEmployer.licenseNumber,
       },
     })
 
-    revalidatePath(`/org/${formData.get('id')?.toString()}`)
+    revalidatePath(`/org/${employerId}`)
+    revalidatePath(`/org/${employerId}/edit`)
     return { success: true }
   } catch (error) {
     console.error('Error updating employer:', error)

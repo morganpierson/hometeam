@@ -72,6 +72,27 @@ enum ParticipantType {
   CLIENT
 }
 
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  TEMPORARY
+}
+
+enum JobStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  CLOSED
+  FILLED
+}
+
+enum PayType {
+  HOURLY
+  SALARY
+  PROJECT_BASED
+}
+
 // ============================================================================
 // EMPLOYEE (Trade Worker)
 // ============================================================================
@@ -187,8 +208,92 @@ model Employer {
   savedByClients       Client[]            @relation("ClientSavedEmployers")
   reviewsReceived      Review[]            @relation("EmployerReviewSubject")
   conversations        Conversation[]      @relation("EmployerConversations")
+  jobPostings          JobPosting[]
 
   @@index([name])
+}
+
+// ============================================================================
+// JOB POSTING
+// ============================================================================
+
+// JobPosting = A job listing posted by an Employer to find trade workers
+model JobPosting {
+  id                   String              @id @default(uuid())
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  // Basic Info
+  title                String
+  description          String              @db.Text
+  jobType              JobType
+  status               JobStatus           @default(DRAFT)
+
+  // Role Requirements
+  primaryTrade         TradeCategory
+  requiredCertifications String[]
+  minYearsExperience   Int?
+  maxYearsExperience   Int?
+
+  // Location
+  city                 String
+  state                String
+  zipCode              String?
+  isRemote             Boolean             @default(false)
+
+  // Compensation
+  payType              PayType
+  payRangeMin          Decimal?            @db.Decimal(10, 2)
+  payRangeMax          Decimal?            @db.Decimal(10, 2)
+
+  // Benefits (stored as JSON array of strings)
+  benefits             String[]
+
+  // Recruiting Contact
+  contactName          String?
+  contactEmail         String?
+  contactPhone         String?
+
+  // Company Info (can override employer defaults)
+  companyDescription   String?             @db.Text
+
+  // Ownership
+  employerId           String
+  employer             Employer            @relation(fields: [employerId], references: [id])
+
+  // Posted by (employee who created the posting)
+  postedById           String?
+
+  // Applications
+  applications         JobApplication[]
+
+  @@index([employerId])
+  @@index([status])
+  @@index([primaryTrade])
+  @@index([city, state])
+}
+
+// JobApplication = An employee's application to a job posting
+model JobApplication {
+  id                   String              @id @default(uuid())
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  status               String              @default("pending") // pending, reviewing, interviewed, offered, hired, rejected
+
+  coverLetter          String?             @db.Text
+  expectedPay          Decimal?            @db.Decimal(10, 2)
+
+  // Relations
+  jobPostingId         String
+  jobPosting           JobPosting          @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+
+  applicantId          String
+  // Note: applicant relation would link to Employee model
+
+  @@index([jobPostingId])
+  @@index([applicantId])
+  @@index([status])
 }
 
 // ============================================================================
