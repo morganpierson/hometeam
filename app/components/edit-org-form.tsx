@@ -6,7 +6,7 @@ import EmployeeModalList from './employee-modal-list'
 import SelectDropdown from './select-dropdown'
 import { updateEmployerInfo } from '@/utils/actions'
 import { useFormState, useFormStatus } from 'react-dom'
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AddEmployeeModal from './add-employee-modal'
 import UploadImage from './upload-image'
@@ -42,31 +42,49 @@ interface EditOrgFormProps {
   org: Employer
 }
 
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {pending ? 'Saving...' : 'Save'}
+    </button>
+  )
+}
+
 export default function EditOrgForm({ org }: EditOrgFormProps) {
   const [state, formAction] = useFormState(updateEmployerInfo, {
     success: false,
   })
-  const status = useFormStatus()
-  const ref = useRef(null)
+  const ref = useRef<HTMLFormElement>(null)
   const router = useRouter()
   const [openAddEmployee, setOpenAddEmployee] = useState(false)
 
   const tradeCategoryOptions = Object.values(TradeCategory)
 
+  // Handle successful save - redirect to org page
+  useEffect(() => {
+    if (state.success) {
+      router.push(`/org/${org.id}`)
+      router.refresh()
+    }
+  }, [state.success, org.id, router])
+
   return (
-    <form
-      action={async (formData) => {
-        await formAction(formData)
-        setTimeout(() => router.push(`/org/${org.id}`), 1000)
-      }}
-    >
+    <form ref={ref} action={formAction}>
       <AddEmployeeModal
         open={openAddEmployee}
         setOpen={setOpenAddEmployee}
         orgData={org}
       />
-      <input hidden name="id" value={org.id} />
+      <input type="hidden" name="id" value={org.id} />
       <div className="h-24 flex items-center justify-end gap-x-6 sticky top-6 backdrop-blur-sm mt-0">
+        {state.error && (
+          <div className="text-sm text-red-600">{state.error}</div>
+        )}
         <button
           type="button"
           className="text-sm font-semibold leading-6 text-gray-900"
@@ -74,12 +92,7 @@ export default function EditOrgForm({ org }: EditOrgFormProps) {
         >
           Cancel
         </button>
-        <button
-          type="submit"
-          className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-          Save
-        </button>
+        <SubmitButton />
       </div>
       <div>
         <div className="grid grid-cols-1 gap-x-8 gap-y-10 border-b border-gray-900/10 pb-12 md:grid-cols-3">
