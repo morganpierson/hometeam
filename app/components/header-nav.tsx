@@ -18,27 +18,30 @@ interface HeaderNavProps {
     id: string
     name: string
     logo?: string | null
-  }
+  } | null
   user: {
     firstName?: string | null
     lastName?: string | null
     profileImage?: string | null
-  }
+  } | null
 }
 
 export default function HeaderNav({ children, orgData, user }: HeaderNavProps) {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  const orgId = orgData?.id || ''
+  const orgName = orgData?.name || 'Organization'
+
   const navigation = [
-    { name: 'Dashboard', href: `/org/${orgData.id}` },
-    { name: 'Jobs', href: `/org/${orgData.id}/jobs` },
+    { name: 'Dashboard', href: `/org/${orgId}` },
+    { name: 'Jobs', href: `/org/${orgId}/jobs` },
     { name: 'Find Talent', href: '/marketplace' },
-    { name: 'Messages', href: `/org/${orgData.id}/inbox`, badge: 5 },
+    { name: 'Messages', href: `/org/${orgId}/inbox`, badge: 5 },
   ]
 
   const isActive = (href: string) => {
-    if (href === `/org/${orgData.id}`) {
+    if (href === `/org/${orgId}`) {
       return pathname === href || pathname === `${href}/edit`
     }
     return pathname.startsWith(href)
@@ -50,41 +53,41 @@ export default function HeaderNav({ children, orgData, user }: HeaderNavProps) {
       <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
         <nav className="px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center justify-between">
-            {/* Left: Logo */}
+            {/* Left: Logo + Navigation */}
             <div className="flex items-center">
-              <Link href={`/org/${orgData.id}`} className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded bg-emerald-500 flex items-center justify-center">
                   <span className="text-white font-bold text-lg">S:</span>
                 </div>
               </Link>
-            </div>
 
-            {/* Center: Navigation */}
-            <div className="hidden md:flex md:items-center md:gap-x-1">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={clsx(
-                    'relative px-4 py-4 text-sm font-medium transition-colors',
-                    isActive(item.href)
-                      ? 'text-gray-900'
-                      : 'text-gray-500 hover:text-gray-900'
-                  )}
-                >
-                  <span className="flex items-center gap-x-2">
-                    {item.name}
-                    {item.badge && (
-                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                        {item.badge}
-                      </span>
+              {/* Navigation */}
+              <div className="hidden md:flex md:items-center md:ml-6">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={clsx(
+                      'relative px-4 py-4 text-sm font-medium transition-colors',
+                      isActive(item.href)
+                        ? 'text-gray-900'
+                        : 'text-gray-500 hover:text-gray-900'
                     )}
-                  </span>
-                  {isActive(item.href) && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500" />
-                  )}
-                </Link>
-              ))}
+                  >
+                    <span className="flex items-center gap-x-2">
+                      {item.name}
+                      {item.badge && (
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                          {item.badge}
+                        </span>
+                      )}
+                    </span>
+                    {isActive(item.href) && (
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500" />
+                    )}
+                  </Link>
+                ))}
+              </div>
             </div>
 
             {/* Right: Search, Settings, Profile */}
@@ -106,9 +109,9 @@ export default function HeaderNav({ children, orgData, user }: HeaderNavProps) {
                 <UserButton afterSignOutUrl="/" />
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-900">
-                    {user.firstName} {user.lastName}
+                    {user?.firstName} {user?.lastName}
                   </p>
-                  <p className="text-xs text-gray-500">{orgData.name}</p>
+                  <p className="text-xs text-gray-500">{orgName}</p>
                 </div>
               </div>
 
@@ -157,9 +160,9 @@ export default function HeaderNav({ children, orgData, user }: HeaderNavProps) {
                 <UserButton afterSignOutUrl="/" />
                 <div>
                   <p className="text-sm font-medium text-gray-900">
-                    {user.firstName} {user.lastName}
+                    {user?.firstName} {user?.lastName}
                   </p>
-                  <p className="text-xs text-gray-500">{orgData.name}</p>
+                  <p className="text-xs text-gray-500">{orgName}</p>
                 </div>
               </div>
             </div>
