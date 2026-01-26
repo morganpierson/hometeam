@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -18,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon } from '@heroicons/react/24/solid'
 import { TradeCategory } from '@prisma/client'
+import RequestToChatModal from '../request-to-chat-modal'
 
 interface JobPosting {
   id: string
@@ -118,8 +120,16 @@ export default function EmployerDashboard({ data }: EmployerDashboardProps) {
     topProspects,
   } = data
 
+  const [chatModalOpen, setChatModalOpen] = useState(false)
+  const [selectedProspect, setSelectedProspect] = useState<Prospect | null>(null)
+
   const firstName = currentUser?.firstName || employer.name
   const hasJobs = recentJobs.length > 0
+
+  const handleRequestToChat = (prospect: Prospect) => {
+    setSelectedProspect(prospect)
+    setChatModalOpen(true)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -395,13 +405,13 @@ export default function EmployerDashboard({ data }: EmployerDashboardProps) {
                             <XMarkIcon className="h-4 w-4" />
                             Not interested
                           </button>
-                          <Link
-                            href={`/marketplace/user/${prospect.id}`}
+                          <button
+                            onClick={() => handleRequestToChat(prospect)}
                             className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium text-white bg-gray-900 rounded-md hover:bg-gray-800"
                           >
                             <ChatBubbleLeftRightIcon className="h-4 w-4" />
                             Request to chat
-                          </Link>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -440,6 +450,16 @@ export default function EmployerDashboard({ data }: EmployerDashboardProps) {
           )}
         </div>
       </div>
+
+      {/* Request to Chat Modal */}
+      {selectedProspect && (
+        <RequestToChatModal
+          open={chatModalOpen}
+          setOpen={setChatModalOpen}
+          prospect={selectedProspect}
+          employerId={employer.id}
+        />
+      )}
     </div>
   )
 }
