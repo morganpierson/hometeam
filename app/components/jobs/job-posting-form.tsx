@@ -10,7 +10,10 @@ import {
   UserIcon,
   BuildingOfficeIcon,
   CheckIcon,
+  SparklesIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline'
+import clsx from 'clsx'
 
 interface Employer {
   id: string
@@ -110,7 +113,10 @@ const companySizeOptions = [
 export default function JobPostingForm({ employer, orgId }: JobPostingFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [aiPrompt, setAiPrompt] = useState('')
+  const [sectionsNeedingAttention, setSectionsNeedingAttention] = useState<string[]>([])
 
   // Form state
   const [formData, setFormData] = useState({
@@ -163,6 +169,57 @@ export default function JobPostingForm({ employer, orgId }: JobPostingFormProps)
     }))
   }
 
+  const handleGenerateWithAI = async () => {
+    if (!aiPrompt.trim()) return
+
+    setIsGenerating(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/jobs/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: aiPrompt }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to generate job posting')
+      }
+
+      const generatedData = await response.json()
+
+      // Update form with generated data
+      setFormData(prev => ({
+        ...prev,
+        title: generatedData.title || prev.title,
+        description: generatedData.description || prev.description,
+        primaryTrade: generatedData.primaryTrade || prev.primaryTrade,
+        jobType: generatedData.jobType || prev.jobType,
+        minYearsExperience: generatedData.minYearsExperience || prev.minYearsExperience,
+        maxYearsExperience: generatedData.maxYearsExperience || prev.maxYearsExperience,
+        requiredCertifications: generatedData.requiredCertifications?.length > 0
+          ? generatedData.requiredCertifications
+          : prev.requiredCertifications,
+        city: generatedData.city || prev.city,
+        state: generatedData.state || prev.state,
+        payType: generatedData.payType || prev.payType,
+        payRangeMin: generatedData.payRangeMin || prev.payRangeMin,
+        payRangeMax: generatedData.payRangeMax || prev.payRangeMax,
+        benefits: generatedData.benefits?.length > 0
+          ? generatedData.benefits
+          : prev.benefits,
+      }))
+
+      // Set sections that need attention
+      setSectionsNeedingAttention(generatedData.needsAttention || [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate job posting')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent, status: 'DRAFT' | 'ACTIVE') => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -194,9 +251,101 @@ export default function JobPostingForm({ employer, orgId }: JobPostingFormProps)
 
   return (
     <form className="max-w-4xl mx-auto">
+      {/* AI Auto-Fill Section */}
+      <section className="bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-xl p-6 mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 bg-violet-100 rounded-lg">
+            <SparklesIcon className="h-5 w-5 text-violet-600" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Quick Fill with AI</h2>
+            <p className="text-sm text-gray-500">
+              Describe your ideal candidate and we&apos;ll fill out the form for you
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <input
+            type="text"
+            value={aiPrompt}
+            onChange={(e) => setAiPrompt(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !isGenerating) {
+                e.preventDefault()
+                handleGenerateWithAI()
+              }
+            }}
+            placeholder="e.g., Journeyman electrician with 10 years of commercial experience in the Denver metro area"
+            className="flex-1 px-4 py-3 border border-violet-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white"
+          />
+          <button
+            type="button"
+            onClick={handleGenerateWithAI}
+            disabled={isGenerating || !aiPrompt.trim()}
+            className="px-5 py-3 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isGenerating ? (
+              <>
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Generating...
+              </>
+            ) : (
+              <>
+                <SparklesIcon className="h-4 w-4" />
+                Generate
+              </>
+            )}
+          </button>
+        </div>
+      </section>
+
       {error && (
         <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-600">
           {error}
+        </div>
+      )}
+
+      {/* Sections Needing Attention Alert */}
+      {sectionsNeedingAttention.length > 0 && (
+        <div className="mb-6 rounded-lg bg-amber-50 border border-amber-300 p-4">
+          <div className="flex items-start gap-3">
+            <ExclamationTriangleIcon className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-amber-800">
+                Please confirm the following sections:
+              </p>
+              <ul className="mt-1 text-sm text-amber-700">
+                {sectionsNeedingAttention.includes('location') && (
+                  <li>• Location details</li>
+                )}
+                {sectionsNeedingAttention.includes('requirements') && (
+                  <li>• Requirements (experience & certifications)</li>
+                )}
+                {sectionsNeedingAttention.includes('compensation') && (
+                  <li>• Compensation details</li>
+                )}
+                {sectionsNeedingAttention.includes('benefits') && (
+                  <li>• Benefits</li>
+                )}
+              </ul>
+            </div>
+          </div>
         </div>
       )}
 
@@ -280,12 +429,28 @@ export default function JobPostingForm({ employer, orgId }: JobPostingFormProps)
       </section>
 
       {/* Experience & Certifications */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <section className={clsx(
+        "bg-white rounded-xl border p-6 mb-6",
+        sectionsNeedingAttention.includes('requirements')
+          ? "border-amber-300 bg-amber-50/30"
+          : "border-gray-200"
+      )}>
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <UserIcon className="h-5 w-5 text-blue-600" />
+          <div className={clsx(
+            "p-2 rounded-lg",
+            sectionsNeedingAttention.includes('requirements') ? "bg-amber-100" : "bg-blue-100"
+          )}>
+            <UserIcon className={clsx(
+              "h-5 w-5",
+              sectionsNeedingAttention.includes('requirements') ? "text-amber-600" : "text-blue-600"
+            )} />
           </div>
           <h2 className="text-lg font-semibold text-gray-900">Requirements</h2>
+          {sectionsNeedingAttention.includes('requirements') && (
+            <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+              Needs review
+            </span>
+          )}
         </div>
 
         <div className="space-y-5">
@@ -345,12 +510,28 @@ export default function JobPostingForm({ employer, orgId }: JobPostingFormProps)
       </section>
 
       {/* Location */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <section className={clsx(
+        "bg-white rounded-xl border p-6 mb-6",
+        sectionsNeedingAttention.includes('location')
+          ? "border-amber-300 bg-amber-50/30"
+          : "border-gray-200"
+      )}>
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <MapPinIcon className="h-5 w-5 text-purple-600" />
+          <div className={clsx(
+            "p-2 rounded-lg",
+            sectionsNeedingAttention.includes('location') ? "bg-amber-100" : "bg-purple-100"
+          )}>
+            <MapPinIcon className={clsx(
+              "h-5 w-5",
+              sectionsNeedingAttention.includes('location') ? "text-amber-600" : "text-purple-600"
+            )} />
           </div>
           <h2 className="text-lg font-semibold text-gray-900">Location</h2>
+          {sectionsNeedingAttention.includes('location') && (
+            <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+              Needs review
+            </span>
+          )}
         </div>
 
         <div className="space-y-5">
@@ -411,12 +592,32 @@ export default function JobPostingForm({ employer, orgId }: JobPostingFormProps)
       </section>
 
       {/* Compensation */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <section className={clsx(
+        "bg-white rounded-xl border p-6 mb-6",
+        (sectionsNeedingAttention.includes('compensation') || sectionsNeedingAttention.includes('benefits'))
+          ? "border-amber-300 bg-amber-50/30"
+          : "border-gray-200"
+      )}>
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <CurrencyDollarIcon className="h-5 w-5 text-green-600" />
+          <div className={clsx(
+            "p-2 rounded-lg",
+            (sectionsNeedingAttention.includes('compensation') || sectionsNeedingAttention.includes('benefits'))
+              ? "bg-amber-100"
+              : "bg-green-100"
+          )}>
+            <CurrencyDollarIcon className={clsx(
+              "h-5 w-5",
+              (sectionsNeedingAttention.includes('compensation') || sectionsNeedingAttention.includes('benefits'))
+                ? "text-amber-600"
+                : "text-green-600"
+            )} />
           </div>
           <h2 className="text-lg font-semibold text-gray-900">Compensation</h2>
+          {(sectionsNeedingAttention.includes('compensation') || sectionsNeedingAttention.includes('benefits')) && (
+            <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+              Needs review
+            </span>
+          )}
         </div>
 
         <div className="space-y-5">
