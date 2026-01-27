@@ -4,12 +4,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { PaperAirplaneIcon } from '@heroicons/react/24/solid'
 
-interface MessageInputProps {
+interface CandidateMessageInputProps {
   conversationId: string
-  employerId: string
+  employeeId: string
 }
 
-export default function MessageInput({ conversationId, employerId }: MessageInputProps) {
+export default function CandidateMessageInput({
+  conversationId,
+  employeeId,
+}: CandidateMessageInputProps) {
   const [message, setMessage] = useState('')
   const [isSending, setIsSending] = useState(false)
   const router = useRouter()
@@ -27,8 +30,8 @@ export default function MessageInput({ conversationId, employerId }: MessageInpu
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: message.trim(),
-          employerId,
-          senderType: 'EMPLOYER',
+          employeeId,
+          senderType: 'EMPLOYEE',
         }),
       })
 
@@ -64,16 +67,16 @@ export default function MessageInput({ conversationId, employerId }: MessageInpu
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
           rows={1}
-          className="flex-1 resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          className="flex-1 resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
           style={{ minHeight: '44px', maxHeight: '120px' }}
         />
         <button
           type="submit"
           disabled={!message.trim() || isSending}
-          className="flex-shrink-0 h-11 w-11 flex items-center justify-center rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex-shrink-0 h-11 w-11 flex items-center justify-center rounded-xl bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isSending ? (
-            <svg className="animate-spin h-5 w-5\" viewBox="0 0 24 24">
+            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
               <circle
                 className="opacity-25"
                 cx="12"
