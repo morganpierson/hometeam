@@ -82,7 +82,7 @@ export function Faqs() {
             Frequently asked questions
           </h2>
           <p className="mt-4 text-center text-lg tracking-tight text-slate-700">
-            If you can’t find what you’re looking for, email our team and we'll
+            If you can&apos;t find what you&apos;re looking for, email our team and we&apos;ll
             get back to you ASAP.
           </p>
         </div>

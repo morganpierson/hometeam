@@ -77,6 +77,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Capture employee id for use in transaction
+    const employeeId = employee.id
+
     // Create employer and update employee in a transaction
     const employer = await prisma.$transaction(async (tx) => {
       // Create the employer
@@ -96,7 +99,7 @@ export async function POST(req: NextRequest) {
 
       // Update the employee to be linked to this employer and set as admin
       await tx.employee.update({
-        where: { id: employee.id },
+        where: { id: employeeId },
         data: {
           employerId: newEmployer.id,
           isAdmin: true,
@@ -115,7 +118,7 @@ export async function POST(req: NextRequest) {
             connect: { id: newEmployer.id },
           },
           employees: {
-            connect: { id: employee.id },
+            connect: { id: employeeId },
           },
         },
       })
