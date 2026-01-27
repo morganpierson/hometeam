@@ -14,6 +14,8 @@ import ResumeUpload from '../../components/resume-upload'
 import ResumeSummary from '../../components/resume-summary'
 import ResumeHeaderActions from '../../components/resume-header-actions'
 
+export const dynamic = 'force-dynamic'
+
 const tradeCategoryLabels: Record<string, string> = {
   ELECTRICIAN: 'Electrician',
   PLUMBER: 'Plumber',

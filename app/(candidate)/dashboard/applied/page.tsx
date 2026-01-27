@@ -11,6 +11,8 @@ import {
 import Link from 'next/link'
 import Image from 'next/image'
 
+export const dynamic = 'force-dynamic'
+
 const statusColors: Record<string, { bg: string; text: string }> = {
   pending: { bg: 'bg-yellow-50', text: 'text-yellow-700' },
   reviewing: { bg: 'bg-blue-50', text: 'text-blue-700' },

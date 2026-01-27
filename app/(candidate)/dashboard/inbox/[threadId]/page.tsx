@@ -11,6 +11,8 @@ import {
 } from '@heroicons/react/24/outline'
 import CandidateMessageInput from './message-input'
 
+export const dynamic = 'force-dynamic'
+
 function formatMessageTime(date: Date): string {
   const now = new Date()
   const isToday = date.toDateString() === now.toDateString()
