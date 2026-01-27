@@ -11,6 +11,8 @@ import {
   BriefcaseIcon,
   CurrencyDollarIcon,
 } from '@heroicons/react/24/outline'
+import ResumeUpload from '../components/resume-upload'
+import ResumeSummary from '../components/resume-summary'
 
 const tradeCategoryLabels: Record<string, string> = {
   ELECTRICIAN: 'Electrician',
@@ -58,6 +60,9 @@ export default async function CandidateDashboard() {
             },
           },
         },
+      },
+      workExperiences: {
+        orderBy: { sortOrder: 'asc' },
       },
     },
   })
@@ -189,6 +194,29 @@ export default async function CandidateDashboard() {
             <p className="text-sm text-gray-600">{employee.bio}</p>
           </div>
         )}
+      </div>
+
+      {/* Resume Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <ResumeUpload />
+        </div>
+        <div className="lg:col-span-2">
+          <ResumeSummary
+            employee={{
+              firstName: employee.firstName,
+              lastName: employee.lastName,
+              profileImage: employee.profileImage,
+              yearsExperience: employee.yearsExperience,
+              location: employee.location,
+              isAvailableForHire: employee.isAvailableForHire,
+              resume: employee.resume,
+              resumeSummary: employee.resumeSummary,
+              lookingFor: employee.lookingFor,
+            }}
+            workExperiences={employee.workExperiences}
+          />
+        </div>
       </div>
 
       {/* Recent Messages */}

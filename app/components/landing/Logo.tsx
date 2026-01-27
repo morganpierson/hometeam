@@ -1,15 +1,14 @@
 import Image from 'next/image'
-import logoImage from '@/app/images/logos/frame13.svg'
 
 export function Logo(props: React.ComponentPropsWithoutRef<'div'>) {
   return (
     <div {...props}>
       <Image
-        src={logoImage}
+        src="/logo.png"
         alt="Skilled Trades Marketplace"
-        width={120}
+        width={40}
         height={40}
-        className="h-10 w-auto"
+        className="h-10 w-10 rounded"
         priority
       />
     </div>

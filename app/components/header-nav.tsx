@@ -10,6 +10,7 @@ import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
 import { UserButton } from '@clerk/nextjs'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 
 interface HeaderNavProps {
@@ -57,9 +58,13 @@ export default function HeaderNav({ children, orgData, user, unreadMessageCount 
             {/* Left: Logo + Navigation */}
             <div className="flex items-center">
               <Link href="/" className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded bg-emerald-500 flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">S:</span>
-                </div>
+                <Image
+                  src="/logo.png"
+                  alt="Logo"
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 rounded"
+                />
               </Link>
 
               {/* Navigation */}
