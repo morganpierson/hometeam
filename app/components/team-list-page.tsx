@@ -85,7 +85,7 @@ const TeamListPage = ({ projectData = [], orgData }: TeamListPageProps) => {
         </h1>
         <a
           href={`/org/${orgData.id}/edit`}
-          className="text-indigo-600 hover:underline hover:text-indigo-500 flex gap-1 items-center mr-12"
+          className="text-amber-600 hover:underline hover:text-amber-500 flex gap-1 items-center mr-12"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -126,7 +126,7 @@ const TeamListPage = ({ projectData = [], orgData }: TeamListPageProps) => {
               ))}
               <button
                 type="button"
-                className="rounded-full bg-white border border-indigo-600 text-indigo-600 p-2 shadow-sm hover:bg-indigo-500 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                className="rounded-full bg-white border border-amber-500 text-amber-500 p-2 shadow-sm hover:bg-amber-500 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
                 onClick={() => setOpen(true)}
               >
                 <PlusIcon className="h-5 w-5" aria-hidden="true" />
@@ -140,7 +140,7 @@ const TeamListPage = ({ projectData = [], orgData }: TeamListPageProps) => {
             <p>No employees yet.</p>
             <button
               type="button"
-              className="mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+              className="mt-4 rounded-md bg-amber-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-600"
               onClick={() => setOpen(true)}
             >
               Add your first employee

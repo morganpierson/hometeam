@@ -407,7 +407,7 @@ export default function EmployerDashboard({ data }: EmployerDashboardProps) {
                           </button>
                           <button
                             onClick={() => handleRequestToChat(prospect)}
-                            className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium text-white bg-gray-900 rounded-md hover:bg-gray-800"
+                            className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium text-white bg-amber-500 rounded-md hover:bg-amber-600"
                           >
                             <ChatBubbleLeftRightIcon className="h-4 w-4" />
                             Request to chat

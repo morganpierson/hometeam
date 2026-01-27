@@ -8,7 +8,7 @@ const roles = [
     href: '/for-contractors',
     cta: 'Start hiring',
     icon: BuildingIcon,
-    color: 'bg-blue-600',
+    color: 'bg-amber-500',
   },
   {
     name: "I'm a skilled tradesperson",

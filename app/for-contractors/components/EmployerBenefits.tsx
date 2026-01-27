@@ -114,7 +114,7 @@ export function EmployerBenefits() {
             {benefits.map((benefit) => (
               <div key={benefit.name} className="relative pl-16">
                 <dt className="text-base font-semibold leading-7 text-slate-900">
-                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
+                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500">
                     <benefit.icon className="h-6 w-6 text-white" />
                   </div>
                   {benefit.name}

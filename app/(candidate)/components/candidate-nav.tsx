@@ -24,6 +24,7 @@ interface CandidateNavProps {
     profileImage: string | null
     tradeCategory: string | null
   }
+  unreadMessageCount?: number
 }
 
 const tradeCategoryLabels: Record<string, string> = {
@@ -48,7 +49,7 @@ const tradeCategoryLabels: Record<string, string> = {
   OTHER: 'Trade Professional',
 }
 
-export default function CandidateNav({ employee }: CandidateNavProps) {
+export default function CandidateNav({ employee, unreadMessageCount = 0 }: CandidateNavProps) {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -56,7 +57,7 @@ export default function CandidateNav({ employee }: CandidateNavProps) {
     { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
     { name: 'Find Work', href: '/dashboard/jobs', icon: MagnifyingGlassIcon },
     { name: 'Applied', href: '/dashboard/applied', icon: DocumentTextIcon },
-    { name: 'Messages', href: '/dashboard/inbox', icon: ChatBubbleLeftRightIcon },
+    { name: 'Messages', href: '/dashboard/inbox', icon: ChatBubbleLeftRightIcon, badge: unreadMessageCount > 0 ? unreadMessageCount : undefined },
     { name: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
   ]
 
@@ -97,7 +98,14 @@ export default function CandidateNav({ employee }: CandidateNavProps) {
                       : 'text-gray-500 hover:text-gray-900'
                   )}
                 >
-                  {item.name}
+                  <span className="flex items-center gap-x-2">
+                    {item.name}
+                    {item.badge && (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        {item.badge}
+                      </span>
+                    )}
+                  </span>
                   {isActive(item.href) && (
                     <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500" />
                   )}
@@ -142,14 +150,21 @@ export default function CandidateNav({ employee }: CandidateNavProps) {
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={clsx(
-                    'flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium',
+                    'flex items-center justify-between rounded-lg px-3 py-2 text-base font-medium',
                     isActive(item.href)
                       ? 'bg-amber-50 text-amber-600'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   )}
                 >
-                  <item.icon className="h-5 w-5" />
-                  {item.name}
+                  <span className="flex items-center gap-3">
+                    <item.icon className="h-5 w-5" />
+                    {item.name}
+                  </span>
+                  {item.badge && (
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                      {item.badge}
+                    </span>
+                  )}
                 </Link>
               ))}
             </div>

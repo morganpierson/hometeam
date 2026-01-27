@@ -51,7 +51,7 @@ const CreateOrgForm = ({ companySize, industryOptions }: CreateOrgFormProps) => 
         <div className="pt-4 flex justify-end w-96 col-start-2">
           <button
             type="submit"
-            className="rounded-full bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            className="rounded-full bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
           >
             Create Org
           </button>

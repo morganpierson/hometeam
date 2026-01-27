@@ -28,9 +28,10 @@ export default function JobsContent({ orgId, jobs, employerName }: JobsContentPr
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Job Postings</h2>
             <div className="space-y-4">
               {jobs.map((job) => (
-                <div
+                <Link
                   key={job.id}
-                  className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
+                  href={`/org/${orgId}/jobs/${job.id}/applicants`}
+                  className="block bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm hover:border-amber-200 transition-all"
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -38,8 +39,9 @@ export default function JobsContent({ orgId, jobs, employerName }: JobsContentPr
                       <p className="text-sm text-gray-500">{employerName}</p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-sm text-gray-500">
-                        {job.applicantCount || 0} applicants
+                      <span className="flex items-center gap-1 text-sm text-gray-500">
+                        <UsersIcon className="h-4 w-4" />
+                        {job.applicantCount || 0} applicant{job.applicantCount !== 1 ? 's' : ''}
                       </span>
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -52,7 +54,7 @@ export default function JobsContent({ orgId, jobs, employerName }: JobsContentPr
                       </span>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -74,7 +76,7 @@ export default function JobsContent({ orgId, jobs, employerName }: JobsContentPr
                 </Link>
                 <Link
                   href={`/org/${orgId}/jobs/new`}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-amber-500 rounded-lg hover:bg-amber-600 transition-colors"
                 >
                   <BriefcaseIcon className="h-4 w-4" />
                   Post a Job

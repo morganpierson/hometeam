@@ -87,6 +87,8 @@ export default async function FindWorkPage({ searchParams }: PageProps) {
     payRangeMin: job.payRangeMin ? Number(job.payRangeMin) : null,
     payRangeMax: job.payRangeMax ? Number(job.payRangeMax) : null,
     minYearsExperience: job.minYearsExperience,
+    requiredCertifications: job.requiredCertifications,
+    benefits: job.benefits,
     createdAt: job.createdAt.toISOString(),
     employer: job.employer,
   }))

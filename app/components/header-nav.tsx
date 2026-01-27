@@ -24,9 +24,10 @@ interface HeaderNavProps {
     lastName?: string | null
     profileImage?: string | null
   } | null
+  unreadMessageCount?: number
 }
 
-export default function HeaderNav({ children, orgData, user }: HeaderNavProps) {
+export default function HeaderNav({ children, orgData, user, unreadMessageCount = 0 }: HeaderNavProps) {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -37,7 +38,7 @@ export default function HeaderNav({ children, orgData, user }: HeaderNavProps) {
     { name: 'Dashboard', href: `/org/${orgId}` },
     { name: 'Jobs', href: `/org/${orgId}/jobs` },
     { name: 'Find Talent', href: '/marketplace' },
-    { name: 'Messages', href: `/org/${orgId}/inbox`, badge: 5 },
+    { name: 'Messages', href: `/org/${orgId}/inbox`, badge: unreadMessageCount > 0 ? unreadMessageCount : undefined },
   ]
 
   const isActive = (href: string) => {

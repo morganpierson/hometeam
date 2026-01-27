@@ -97,20 +97,20 @@ const NewUser = async ({ searchParams }: NewUserProps) => {
           {/* Employer Option */}
           <Link
             href="/new-user?role=employer"
-            className="group relative flex flex-col rounded-2xl border-2 border-slate-200 bg-white p-8 shadow-sm hover:border-blue-500 hover:shadow-lg transition-all"
+            className="group relative flex flex-col rounded-2xl border-2 border-slate-200 bg-white p-8 shadow-sm hover:border-amber-500 hover:shadow-lg transition-all"
           >
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-600 text-white">
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-amber-500 text-white">
               <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M3 21h18M5 21V7l8-4v18M13 21V3l6 3v15M9 9v.01M9 12v.01M9 15v.01M9 18v.01M17 9v.01M17 12v.01M17 15v.01M17 18v.01" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <h2 className="mt-6 text-xl font-semibold text-slate-900 group-hover:text-blue-600">
+            <h2 className="mt-6 text-xl font-semibold text-slate-900 group-hover:text-amber-600">
               I run a contracting company
             </h2>
             <p className="mt-2 text-base text-slate-600">
               Find and hire verified trade workers, manage your team, and showcase your portfolio.
             </p>
-            <div className="mt-6 flex items-center text-sm font-semibold text-blue-600">
+            <div className="mt-6 flex items-center text-sm font-semibold text-amber-600">
               Get started
               <svg className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

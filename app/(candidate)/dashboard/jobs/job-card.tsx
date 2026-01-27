@@ -1,7 +1,6 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
 import {
   BuildingOffice2Icon,
   MapPinIcon,
@@ -45,32 +44,37 @@ const payTypeLabels: Record<string, string> = {
   PROJECT_BASED: 'project',
 }
 
-interface JobCardProps {
-  job: {
+export interface Job {
+  id: string
+  title: string
+  description: string
+  jobType: string
+  primaryTrade: string
+  city: string
+  state: string
+  isRemote: boolean
+  payType: string
+  payRangeMin: number | null
+  payRangeMax: number | null
+  minYearsExperience: number | null
+  createdAt: string
+  requiredCertifications?: string[]
+  benefits?: string[]
+  employer: {
     id: string
-    title: string
-    description: string
-    jobType: string
-    primaryTrade: string
-    city: string
-    state: string
-    isRemote: boolean
-    payType: string
-    payRangeMin: number | null
-    payRangeMax: number | null
-    minYearsExperience: number | null
-    createdAt: string
-    employer: {
-      id: string
-      name: string
-      logo: string | null
-      description: string | null
-      size: string | null
-      city: string | null
-      state: string | null
-    }
+    name: string
+    logo: string | null
+    description: string | null
+    size: string | null
+    city: string | null
+    state: string | null
   }
+}
+
+interface JobCardProps {
+  job: Job
   matchesTrade?: boolean
+  onLearnMore: (job: Job) => void
 }
 
 function formatPay(payRangeMin: unknown, payRangeMax: unknown, payType: string): string {
@@ -111,7 +115,7 @@ function formatTimeAgo(dateString: string): string {
   return `Posted ${Math.floor(diffInDays / 30)} months ago`
 }
 
-export default function JobCard({ job, matchesTrade }: JobCardProps) {
+export default function JobCard({ job, matchesTrade, onLearnMore }: JobCardProps) {
   const location = job.isRemote
     ? 'Remote'
     : `${job.city}, ${job.state}`
@@ -192,12 +196,12 @@ export default function JobCard({ job, matchesTrade }: JobCardProps) {
           <button className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900">
             Save
           </button>
-          <Link
-            href={`/dashboard/jobs/${job.id}`}
+          <button
+            onClick={() => onLearnMore(job)}
             className="px-4 py-2 text-sm font-medium text-white bg-amber-500 rounded-lg hover:bg-amber-600 transition-colors"
           >
             Learn more
-          </Link>
+          </button>
         </div>
       </div>
     </div>

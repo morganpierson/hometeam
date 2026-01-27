@@ -78,7 +78,7 @@ export default function JobsSidebar({ activeCount, draftsCount, orgId }: JobsSid
           <div className="space-y-2">
             <Link
               href={`/org/${orgId}/jobs/new`}
-              className="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors"
+              className="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-medium text-white bg-amber-500 rounded-lg hover:bg-amber-600 transition-colors"
             >
               <BriefcaseIcon className="h-4 w-4" />
               Post a job

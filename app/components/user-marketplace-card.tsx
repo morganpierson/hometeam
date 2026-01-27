@@ -179,7 +179,7 @@ const UserMarketplaceCard = ({ user, employerImage, employer }: UserMarketplaceC
             </button>
             <button
               type="button"
-              className="flex items-center gap-1 justify-between rounded-md bg-indigo-500 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+              className="flex items-center gap-1 justify-between rounded-md bg-amber-500 px-2.5 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
               onClick={() => setOpen(true)}
             >
               <svg

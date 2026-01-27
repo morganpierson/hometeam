@@ -151,6 +151,9 @@ model Employee {
   // Saved by employers (talent pool)
   savedByEmployers     Employer[]          @relation("EmployerSavedCandidates")
 
+  // Job applications
+  jobApplications      JobApplication[]
+
   // References (other employees who can vouch)
   referencesReceived   Employee[]          @relation("EmployeeReferences")
   referencesProvided   Employee[]          @relation("EmployeeReferences")
@@ -289,7 +292,11 @@ model JobApplication {
   jobPosting           JobPosting          @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
 
   applicantId          String
-  // Note: applicant relation would link to Employee model
+  applicant            Employee            @relation(fields: [applicantId], references: [id])
+
+  // Optional link to conversation for messaging
+  conversationId       String?             @unique
+  conversation         Conversation?       @relation(fields: [conversationId], references: [id])
 
   @@index([jobPostingId])
   @@index([applicantId])
@@ -565,6 +572,9 @@ model Conversation {
 
   // Linked offer (if this conversation is about a hire offer)
   hireOffer            HireOffer?
+
+  // Linked job application (if this conversation started from an application)
+  jobApplication       JobApplication?
 
   @@index([projectId])
 }

@@ -127,7 +127,7 @@ const UserProfile = ({ user, org, isOnMarketplace = true }: UserProfileProps) =>
             </p>
             {user.resume && (
               <div className="flex items-center mt-4 hover:cursor-pointer">
-                <div className="flex text-indigo-600 hover:text-indigo-500 mr-4">
+                <div className="flex text-amber-600 hover:text-amber-500 mr-4">
                   <ArrowDownTrayIcon className="h-5 w-5" aria-hidden="true" />
                   <div className="ml-2 flex min-w-0 flex-1 gap-2">
                     <a className="font-medium" href={user.resume}>
@@ -169,7 +169,7 @@ const UserProfile = ({ user, org, isOnMarketplace = true }: UserProfileProps) =>
             {!isEditing ? (
               <button
                 type="button"
-                className="rounded-md bg-white font-medium text-indigo-600 hover:text-indigo-500 flex"
+                className="rounded-md bg-white font-medium text-amber-600 hover:text-amber-500 flex"
                 onClick={() => setIsEditing(!isEditing)}
               >
                 <PencilSquareIcon className="h-5 w-5 mr-2" aria-hidden="true" />
@@ -179,7 +179,7 @@ const UserProfile = ({ user, org, isOnMarketplace = true }: UserProfileProps) =>
               <div>
                 <button
                   type="submit"
-                  className="rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                  className="rounded-md bg-amber-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
                 >
                   {status.pending ? 'Updating...' : 'Save Changes'}
                 </button>
@@ -207,7 +207,7 @@ const UserProfile = ({ user, org, isOnMarketplace = true }: UserProfileProps) =>
                     type="email"
                     name="email"
                     id="email"
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-amber-500 sm:text-sm sm:leading-6"
                     placeholder={user.email || ''}
                     defaultValue={user.email || ''}
                   />
@@ -228,7 +228,7 @@ const UserProfile = ({ user, org, isOnMarketplace = true }: UserProfileProps) =>
                   <select
                     name="tradeCategory"
                     id="tradeCategory"
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-amber-500 sm:text-sm sm:leading-6"
                     defaultValue={user.tradeCategory || ''}
                   >
                     <option value="">Select a trade</option>
@@ -259,7 +259,7 @@ const UserProfile = ({ user, org, isOnMarketplace = true }: UserProfileProps) =>
                     type="number"
                     name="hourlyRate"
                     id="hourlyRate"
-                    className="block w-32 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    className="block w-32 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-amber-500 sm:text-sm sm:leading-6"
                     placeholder="50"
                     defaultValue={user.hourlyRate ? Number(user.hourlyRate) : ''}
                   />
@@ -311,7 +311,7 @@ const UserProfile = ({ user, org, isOnMarketplace = true }: UserProfileProps) =>
                     name="bio"
                     id="bio"
                     rows={4}
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-amber-500 sm:text-sm sm:leading-6"
                     placeholder="Tell us about your experience and skills..."
                     defaultValue={user.bio || user.resumeSummary || ''}
                   />
@@ -374,7 +374,7 @@ const UserProfile = ({ user, org, isOnMarketplace = true }: UserProfileProps) =>
         <div className="flex justify-end mt-6 mb-8">
           <button
             type="button"
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            className="rounded-md bg-amber-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
             onClick={listEmployee}
           >
             {user.isAvailableForHire

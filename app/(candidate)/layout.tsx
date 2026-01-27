@@ -26,6 +26,19 @@ export default async function CandidateLayout({
     },
   })
 
+  // Get unread message count for this employee
+  const unreadCount = employee ? await prisma.message.count({
+    where: {
+      conversation: {
+        employees: {
+          some: { id: employee.id }
+        }
+      },
+      senderType: { not: 'EMPLOYEE' },
+      readAt: null,
+    },
+  }) : 0
+
   // If no employee record, redirect to new-user
   if (!employee) {
     redirect('/new-user')
@@ -43,7 +56,7 @@ export default async function CandidateLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <CandidateNav employee={employee} />
+      <CandidateNav employee={employee} unreadMessageCount={unreadCount} />
       <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>

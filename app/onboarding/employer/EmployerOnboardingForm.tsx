@@ -107,7 +107,7 @@ export default function EmployerOnboardingForm({
               required
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
               placeholder="Acme Electrical Services"
             />
           </div>
@@ -121,7 +121,7 @@ export default function EmployerOnboardingForm({
               required
               value={companySize}
               onChange={(e) => setCompanySize(e.target.value)}
-              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
             >
               <option value="">Select size</option>
               {companySizeOptions.map((option) => (
@@ -142,7 +142,7 @@ export default function EmployerOnboardingForm({
               required
               value={contactEmail}
               onChange={(e) => setContactEmail(e.target.value)}
-              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
             />
           </div>
 
@@ -155,7 +155,7 @@ export default function EmployerOnboardingForm({
               id="contactPhone"
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
-              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
               placeholder="(555) 123-4567"
             />
           </div>
@@ -169,7 +169,7 @@ export default function EmployerOnboardingForm({
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
               placeholder="Tell us about your company..."
             />
           </div>
@@ -190,7 +190,7 @@ export default function EmployerOnboardingForm({
               required
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
             />
           </div>
 
@@ -204,7 +204,7 @@ export default function EmployerOnboardingForm({
               required
               value={state}
               onChange={(e) => setState(e.target.value)}
-              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
               placeholder="CO"
             />
           </div>
@@ -219,7 +219,7 @@ export default function EmployerOnboardingForm({
               required
               value={zipCode}
               onChange={(e) => setZipCode(e.target.value)}
-              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
             />
           </div>
         </div>
@@ -235,7 +235,7 @@ export default function EmployerOnboardingForm({
               key={option.value}
               className={`relative flex cursor-pointer rounded-lg border p-3 transition-colors ${
                 selectedSpecialties.includes(option.value as TradeCategory)
-                  ? 'border-blue-600 bg-blue-50 text-blue-700'
+                  ? 'border-amber-500 bg-amber-50 text-amber-700'
                   : 'border-slate-200 hover:border-slate-300'
               }`}
             >
@@ -259,7 +259,7 @@ export default function EmployerOnboardingForm({
         <button
           type="submit"
           disabled={isSubmitting || selectedSpecialties.length === 0}
-          className="w-full rounded-lg bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full rounded-lg bg-amber-500 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isSubmitting ? 'Creating your company...' : 'Create Company & Continue'}
         </button>

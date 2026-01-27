@@ -310,7 +310,7 @@ export default function NewEmployeeForm({ orgData, open, setOpen }: NewEmployeeF
         </button>
         <button
           type="submit"
-          className="inline-flex w-6/12 justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:col-start-2"
+          className="inline-flex w-6/12 justify-center rounded-md bg-amber-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500 sm:col-start-2"
         >
           Create Employee
         </button>

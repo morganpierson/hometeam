@@ -44,7 +44,7 @@ export default async function EmployerOnboarding() {
         {/* Progress indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-center space-x-2 text-sm text-slate-500">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white font-medium">1</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500 text-white font-medium">1</span>
             <span className="w-12 h-0.5 bg-slate-200"></span>
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-slate-500 font-medium">2</span>
             <span className="w-12 h-0.5 bg-slate-200"></span>

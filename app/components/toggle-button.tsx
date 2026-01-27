@@ -19,7 +19,7 @@ export default function ToggleButton({ header, subHeader }: ToggleButtonProps) {
       <span className="flex flex-grow flex-col">
         <Switch.Label
           as="span"
-          className="text-sm font-medium leading-6 text-indigo-600"
+          className="text-sm font-medium leading-6 text-amber-600"
           passive
         >
           {header}
@@ -32,8 +32,8 @@ export default function ToggleButton({ header, subHeader }: ToggleButtonProps) {
         checked={enabled}
         onChange={setEnabled}
         className={classNames(
-          enabled ? 'bg-indigo-600' : 'bg-gray-200',
-          'relative inline-flex h-6 w-11 ml-6 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 mb-2'
+          enabled ? 'bg-amber-500' : 'bg-gray-200',
+          'relative inline-flex h-6 w-11 ml-6 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 mb-2'
         )}
       >
         <span
