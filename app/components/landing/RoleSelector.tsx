@@ -13,11 +13,10 @@ const roles = [
   {
     name: "I'm a skilled tradesperson",
     description: 'Build your professional profile, find opportunities, and grow your career.',
-    href: '/for-workers',
+    href: '/sign-up?redirect_url=/new-user?role=employee',
     cta: 'Find work',
     icon: HardHatIcon,
     color: 'bg-amber-500',
-    comingSoon: true,
   },
   {
     name: 'I need work done',

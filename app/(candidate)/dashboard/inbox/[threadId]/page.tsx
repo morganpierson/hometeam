@@ -1,14 +1,15 @@
-import { fetchConversationDetails } from '@/utils/actions'
-import { getEmployeeByClerkID } from '@/utils/auth'
+import { auth } from '@clerk/nextjs'
+import { redirect } from 'next/navigation'
+import { prisma } from '@/utils/db'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
   UserCircleIcon,
   ArrowLeftIcon,
   MapPinIcon,
-  BriefcaseIcon,
+  BuildingOfficeIcon,
 } from '@heroicons/react/24/outline'
-import MessageInput from './message-input'
+import CandidateMessageInput from './message-input'
 
 function formatMessageTime(date: Date): string {
   const now = new Date()
@@ -34,21 +35,56 @@ function formatMessageTime(date: Date): string {
   })
 }
 
-export default async function ConversationThread({
+export default async function CandidateConversationThread({
   params,
 }: {
-  params: { id: string; threadId: string }
+  params: { threadId: string }
 }) {
-  const conversationDetails = await fetchConversationDetails(params.threadId)
-  const currentUser = await getEmployeeByClerkID()
+  const { userId } = await auth()
 
-  if (!conversationDetails) {
+  if (!userId) {
+    redirect('/sign-in')
+  }
+
+  const employee = await prisma.employee.findUnique({
+    where: { clerkId: userId },
+  })
+
+  if (!employee) {
+    redirect('/new-user')
+  }
+
+  const conversation = await prisma.conversation.findFirst({
+    where: {
+      id: params.threadId,
+      employees: {
+        some: { id: employee.id },
+      },
+    },
+    include: {
+      messages: {
+        orderBy: { createdAt: 'asc' },
+      },
+      employers: {
+        select: {
+          id: true,
+          name: true,
+          logo: true,
+          city: true,
+          state: true,
+          description: true,
+        },
+      },
+    },
+  })
+
+  if (!conversation) {
     return (
       <div className="max-w-3xl mx-auto text-center py-12">
         <p className="text-gray-500">Conversation not found</p>
         <Link
-          href={`/org/${params.id}/inbox`}
-          className="text-emerald-600 hover:text-emerald-700 mt-4 inline-block"
+          href="/dashboard/inbox"
+          className="text-amber-600 hover:text-amber-700 mt-4 inline-block"
         >
           Back to messages
         </Link>
@@ -56,11 +92,19 @@ export default async function ConversationThread({
     )
   }
 
-  // Get the candidate (employee in the conversation)
-  const candidate = conversationDetails.employees[0]
-  const candidateName = candidate
-    ? [candidate.firstName, candidate.lastName].filter(Boolean).join(' ') || 'Unknown'
-    : 'Unknown Candidate'
+  const employer = conversation.employers[0]
+
+  // Mark unread messages as read
+  await prisma.message.updateMany({
+    where: {
+      conversationId: params.threadId,
+      senderId: { not: employee.id },
+      readAt: null,
+    },
+    data: {
+      readAt: new Date(),
+    },
+  })
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
@@ -68,67 +112,44 @@ export default async function ConversationThread({
       <div className="bg-white rounded-t-xl border border-gray-200 border-b-0 p-4">
         <div className="flex items-center gap-4">
           <Link
-            href={`/org/${params.id}/inbox`}
+            href="/dashboard/inbox"
             className="p-2 -ml-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
           >
             <ArrowLeftIcon className="h-5 w-5" />
           </Link>
 
-          <Link
-            href={candidate ? `/marketplace/user/${candidate.id}` : '#'}
-            className="flex items-center gap-3 flex-1 hover:opacity-80 transition-opacity"
-          >
-            {candidate?.profileImage ? (
+          <div className="flex items-center gap-3 flex-1">
+            {employer?.logo ? (
               <Image
-                src={candidate.profileImage}
-                alt={candidateName}
+                src={employer.logo}
+                alt={employer.name}
                 width={48}
                 height={48}
                 className="h-12 w-12 rounded-full object-cover"
               />
             ) : (
               <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
-                <UserCircleIcon className="h-8 w-8 text-gray-400" />
+                <BuildingOfficeIcon className="h-6 w-6 text-gray-400" />
               </div>
             )}
 
             <div>
-              <h2 className="font-semibold text-gray-900">{candidateName}</h2>
-              <div className="flex items-center gap-3 text-xs text-gray-500">
-                {candidate?.tradeCategory && (
-                  <span className="flex items-center gap-1">
-                    <BriefcaseIcon className="h-3 w-3" />
-                    {candidate.tradeCategory.replace(/_/g, ' ')}
-                  </span>
-                )}
-                {candidate?.location && (
-                  <span className="flex items-center gap-1">
-                    <MapPinIcon className="h-3 w-3" />
-                    {candidate.location}
-                  </span>
-                )}
-              </div>
+              <h2 className="font-semibold text-gray-900">{employer?.name || 'Unknown Company'}</h2>
+              {employer?.city && employer?.state && (
+                <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <MapPinIcon className="h-3 w-3" />
+                  {employer.city}, {employer.state}
+                </p>
+              )}
             </div>
-          </Link>
-
-          {candidate && (
-            <Link
-              href={`/marketplace/user/${candidate.id}`}
-              className="text-sm font-medium text-emerald-600 hover:text-emerald-700"
-            >
-              View Profile
-            </Link>
-          )}
+          </div>
         </div>
       </div>
 
       {/* Messages */}
       <div className="flex-1 bg-gray-50 border-x border-gray-200 overflow-y-auto p-4 space-y-4">
-        {conversationDetails.messages.map((message) => {
-          const isOwnMessage = message.senderId === currentUser.id
-          const senderEmployee = conversationDetails.employees.find(
-            (emp) => emp.id === message.senderId
-          )
+        {conversation.messages.map((message) => {
+          const isOwnMessage = message.senderId === employee.id
 
           return (
             <div
@@ -142,9 +163,9 @@ export default async function ConversationThread({
               >
                 {!isOwnMessage && (
                   <div className="flex-shrink-0">
-                    {senderEmployee?.profileImage ? (
+                    {employer?.logo ? (
                       <Image
-                        src={senderEmployee.profileImage}
+                        src={employer.logo}
                         alt=""
                         width={32}
                         height={32}
@@ -152,7 +173,7 @@ export default async function ConversationThread({
                       />
                     ) : (
                       <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                        <UserCircleIcon className="h-5 w-5 text-gray-400" />
+                        <BuildingOfficeIcon className="h-4 w-4 text-gray-400" />
                       </div>
                     )}
                   </div>
@@ -162,7 +183,7 @@ export default async function ConversationThread({
                   <div
                     className={`px-4 py-2 rounded-2xl ${
                       isOwnMessage
-                        ? 'bg-emerald-600 text-white rounded-br-md'
+                        ? 'bg-amber-500 text-white rounded-br-md'
                         : 'bg-white text-gray-900 border border-gray-200 rounded-bl-md'
                     }`}
                   >
@@ -183,9 +204,9 @@ export default async function ConversationThread({
       </div>
 
       {/* Message Input */}
-      <MessageInput
+      <CandidateMessageInput
         conversationId={params.threadId}
-        employerId={params.id}
+        employeeId={employee.id}
       />
     </div>
   )

@@ -82,7 +82,11 @@ export const PATCH = async (
       return NextResponse.json({ error: 'Employee not found' }, { status: 404 })
     }
 
-    if (requester.employerId !== targetEmployee.employerId) {
+    // Allow self-updates OR updates by employees of the same employer
+    const isSelf = requester.id === targetEmployee.id
+    const isSameEmployer = requester.employerId && requester.employerId === targetEmployee.employerId
+
+    if (!isSelf && !isSameEmployer) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

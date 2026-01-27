@@ -1,5 +1,6 @@
-import { fetchConversations } from '@/utils/actions'
-import { getEmployeeByClerkID } from '@/utils/auth'
+import { auth } from '@clerk/nextjs'
+import { redirect } from 'next/navigation'
+import { prisma } from '@/utils/db'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -22,16 +23,42 @@ function formatTimeAgo(date: Date): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export default async function Inbox({ params }: { params: { id: string } }) {
-  const conversations = await fetchConversations(params.id)
-  const currentUser = await getEmployeeByClerkID()
+export default async function CandidateInbox() {
+  const { userId } = await auth()
 
-  // Sort conversations by most recent message
-  const sortedConversations = [...conversations].sort((a, b) => {
-    const aDate = a.messages[0]?.createdAt || a.createdAt
-    const bDate = b.messages[0]?.createdAt || b.createdAt
-    return new Date(bDate).getTime() - new Date(aDate).getTime()
+  if (!userId) {
+    redirect('/sign-in')
+  }
+
+  const employee = await prisma.employee.findUnique({
+    where: { clerkId: userId },
+    include: {
+      conversations: {
+        include: {
+          messages: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
+          employers: {
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+              city: true,
+              state: true,
+            },
+          },
+        },
+        orderBy: {
+          updatedAt: 'desc',
+        },
+      },
+    },
   })
+
+  if (!employee) {
+    redirect('/new-user')
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -39,35 +66,30 @@ export default async function Inbox({ params }: { params: { id: string } }) {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Your conversations with candidates
+          Conversations with employers
         </p>
       </div>
 
       {/* Conversations List */}
-      {sortedConversations.length > 0 ? (
+      {employee.conversations.length > 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-          {sortedConversations.map((conversation) => {
-            // Get the other participant (employee/candidate)
-            const candidate = conversation.employees[0]
+          {employee.conversations.map((conversation) => {
+            const employer = conversation.employers[0]
             const lastMessage = conversation.messages[0]
-            const isUnread = lastMessage && !lastMessage.readAt && lastMessage.senderId !== currentUser.id
-
-            const candidateName = candidate
-              ? [candidate.firstName, candidate.lastName].filter(Boolean).join(' ') || 'Unknown'
-              : 'Unknown Candidate'
+            const isUnread = lastMessage && !lastMessage.readAt && lastMessage.senderId !== employee.id
 
             return (
               <Link
                 key={conversation.id}
-                href={`/org/${params.id}/inbox/${conversation.id}`}
+                href={`/dashboard/inbox/${conversation.id}`}
                 className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
               >
-                {/* Profile Image */}
+                {/* Company Logo */}
                 <div className="relative flex-shrink-0">
-                  {candidate?.profileImage ? (
+                  {employer?.logo ? (
                     <Image
-                      src={candidate.profileImage}
-                      alt={candidateName}
+                      src={employer.logo}
+                      alt={employer.name}
                       width={48}
                       height={48}
                       className="h-12 w-12 rounded-full object-cover"
@@ -78,7 +100,7 @@ export default async function Inbox({ params }: { params: { id: string } }) {
                     </div>
                   )}
                   {isUnread && (
-                    <span className="absolute top-0 right-0 h-3 w-3 bg-emerald-500 rounded-full border-2 border-white" />
+                    <span className="absolute top-0 right-0 h-3 w-3 bg-amber-500 rounded-full border-2 border-white" />
                   )}
                 </div>
 
@@ -86,7 +108,7 @@ export default async function Inbox({ params }: { params: { id: string } }) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <p className={`text-sm truncate ${isUnread ? 'font-semibold text-gray-900' : 'font-medium text-gray-900'}`}>
-                      {candidateName}
+                      {employer?.name || 'Unknown Company'}
                     </p>
                     {lastMessage && (
                       <span className="text-xs text-gray-500 flex-shrink-0">
@@ -94,14 +116,14 @@ export default async function Inbox({ params }: { params: { id: string } }) {
                       </span>
                     )}
                   </div>
-                  {candidate?.tradeCategory && (
+                  {employer?.city && employer?.state && (
                     <p className="text-xs text-gray-500 mb-1">
-                      {candidate.tradeCategory.replace(/_/g, ' ')}
+                      {employer.city}, {employer.state}
                     </p>
                   )}
                   {lastMessage && (
                     <p className={`text-sm truncate ${isUnread ? 'text-gray-900' : 'text-gray-500'}`}>
-                      {lastMessage.senderId === currentUser.id && (
+                      {lastMessage.senderId === employee.id && (
                         <span className="text-gray-400">You: </span>
                       )}
                       {lastMessage.content}
@@ -122,14 +144,8 @@ export default async function Inbox({ params }: { params: { id: string } }) {
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
           <p className="text-sm text-gray-500 max-w-sm mx-auto">
-            When you start a conversation with a candidate or receive a message, it will appear here.
+            When employers reach out to you, their messages will appear here.
           </p>
-          <Link
-            href="/marketplace"
-            className="inline-flex items-center gap-2 mt-6 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700"
-          >
-            Find Candidates
-          </Link>
         </div>
       )}
     </div>
