@@ -12,6 +12,8 @@ import {
   ChevronDownIcon,
 } from '@heroicons/react/24/outline'
 
+export const dynamic = 'force-dynamic'
+
 const tradeCategoryLabels: Record<string, string> = {
   ELECTRICIAN: 'Electrician',
   PLUMBER: 'Plumber',

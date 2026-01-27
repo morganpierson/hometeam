@@ -9,6 +9,8 @@ import {
   ChevronRightIcon,
 } from '@heroicons/react/24/outline'
 
+export const dynamic = 'force-dynamic'
+
 function formatTimeAgo(date: Date): string {
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()

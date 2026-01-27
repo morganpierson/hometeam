@@ -5,6 +5,8 @@ import { Prisma } from '@prisma/client'
 import JobSearch from './job-search'
 import JobList from './job-list'
 
+export const dynamic = 'force-dynamic'
+
 interface PageProps {
   searchParams: { q?: string; location?: string }
 }

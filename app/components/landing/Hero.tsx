@@ -2,7 +2,7 @@ import { Container } from '@/app/components/landing/Container'
 
 export function Hero() {
   return (
-    <Container className="pb-16 pt-20 text-center lg:pt-32">
+    <Container className="pb-8 pt-12 text-center lg:pt-16">
       <h1 className="mx-auto max-w-4xl font-display text-5xl font-medium tracking-tight text-slate-900 sm:text-7xl">
         The marketplace for{' '}
         <span className="relative whitespace-nowrap text-blue-600">

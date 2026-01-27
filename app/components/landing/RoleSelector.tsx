@@ -73,7 +73,7 @@ function ClipboardIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
 
 export function RoleSelector() {
   return (
-    <section className="py-20 sm:py-32">
+    <section className="py-10 sm:py-16">
       <Container>
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl tracking-tight text-slate-900 sm:text-4xl">
@@ -83,7 +83,7 @@ export function RoleSelector() {
             Whether you&apos;re hiring, looking for work, or need a project done—we&apos;ve got you covered.
           </p>
         </div>
-        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="mx-auto mt-10 grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-3">
           {roles.map((role) => (
             <div
               key={role.name}

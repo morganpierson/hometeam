@@ -6,54 +6,53 @@ import backgroundImage from '@/app/images/background-faqs.jpg'
 const faqs = [
   [
     {
-      question: 'How does automatic performance tracking work?',
+      question: 'How do I find qualified trade professionals?',
       answer:
-        'We use AI to track your employees performance and contributions over the course of their employment. It’s like having a digital manager.',
+        'Browse our marketplace of verified electricians, plumbers, HVAC technicians, and other skilled tradespeople. Filter by trade, experience, location, and availability to find the perfect match for your team.',
     },
     {
-      question: 'How does your solution help companies attract top talent?',
+      question: 'How does the resume parsing work?',
       answer:
-        "Think of it like employment insurance. An employee is much more likely to join a company if they know that company will invest in that employee's future even after it's time to say goodbye.",
+        'When candidates upload their resume, our AI automatically extracts their work history, skills, and experience to create a professional profile. This saves time and ensures accurate, consistent profiles across the platform.',
     },
     {
-      question: 'How do I get early access to top talent?',
+      question: 'Can I message candidates directly?',
       answer:
-        'Companies list their soon-to-be-furloughed employees on our platform. In doing so, employee profiles become available for your review before they hit the job boards.',
-    },
-  ],
-  [
-    {
-      question: 'How does "Try Before You Buy" work?',
-      answer:
-        'Companies are incentivized to pay you to take their furloughed employees off their hands. It keeps their unemployment tax rate low and their reputation high. You should consider it for your next RIF.',
-    },
-    {
-      question: 'How does incentivized employee acquisition work?',
-      answer:
-        'Companies take part of their employee severance package, and apply that to an acquisition offer. For example, a company that would otherwise pay 3 months severance can use part of money to pay you to try out their employee. It is a win-win.',
-    },
-    {
-      question:
-        'Why on earth would a company pay me to take their furloughed employees?',
-      answer:
-        'Maintain and grow a solid reputation with past, present and future employees, keep unemployment tax rates low, attract top talent. These are just a few reasons.',
+        'Yes! Once you find a candidate you like, you can send them a message directly through the platform. All conversations are kept in one place, making it easy to manage your recruiting pipeline.',
     },
   ],
   [
     {
-      question: 'Can I create my own acquisition terms?',
+      question: 'How do I create a profile as a tradesperson?',
       answer:
-        "Of course. We leave it up to the companies to find a suitable agreement. We're just here to help facilitate the process.",
+        'Sign up, select your trade category, and upload your resume. Our system will automatically parse your experience and create a professional profile. You can also add certifications, set your hourly rate, and indicate your availability.',
     },
     {
-      question: 'Do you take a cut of the acquisition?',
+      question: 'Is my information visible to all employers?',
       answer:
-        "Nope. We take zero commission on any acquisition. We're just here to help you find the right fit for your team.",
+        'You control your visibility. Toggle your profile on or off at any time. When visible, employers can find you in the marketplace and reach out about opportunities that match your skills.',
     },
     {
-      question: 'Do you offer a free trial?',
+      question: 'How do job recommendations work?',
       answer:
-        "We offer you unlimited access to the Talented platform until you make your first acquisition offer. We're confident you'll love it.",
+        'We match you with jobs based on your trade category, experience level, location preferences, and the information in your profile. The more complete your profile, the better your matches.',
+    },
+  ],
+  [
+    {
+      question: 'What trades are supported on the platform?',
+      answer:
+        'We support electricians, plumbers, HVAC technicians, carpenters, roofers, painters, masons, welders, general contractors, landscapers, concrete specialists, drywall installers, and many more skilled trades.',
+    },
+    {
+      question: 'Is there a cost to use the platform?',
+      answer:
+        'Creating a profile and browsing opportunities is free for tradespeople. Contractors can post jobs and browse talent with our flexible pricing plans designed for businesses of all sizes.',
+    },
+    {
+      question: 'How do I post a job opening?',
+      answer:
+        'As a contractor, navigate to your dashboard and click "Post a Job." Fill in the details including trade category, requirements, location, and compensation. Your posting will be visible to qualified candidates immediately.',
     },
   ],
 ]
