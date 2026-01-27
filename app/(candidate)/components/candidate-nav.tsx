@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
 import {
   HomeIcon,
+  MagnifyingGlassIcon,
+  DocumentTextIcon,
   ChatBubbleLeftRightIcon,
   UserCircleIcon,
   Bars3Icon,
@@ -52,6 +54,8 @@ export default function CandidateNav({ employee }: CandidateNavProps) {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+    { name: 'Find Work', href: '/dashboard/jobs', icon: MagnifyingGlassIcon },
+    { name: 'Applied', href: '/dashboard/applied', icon: DocumentTextIcon },
     { name: 'Messages', href: '/dashboard/inbox', icon: ChatBubbleLeftRightIcon },
     { name: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
   ]
@@ -87,13 +91,12 @@ export default function CandidateNav({ employee }: CandidateNavProps) {
                   key={item.name}
                   href={item.href}
                   className={clsx(
-                    'relative px-4 py-4 text-sm font-medium transition-colors flex items-center gap-2',
+                    'relative px-4 py-4 text-sm font-medium transition-colors',
                     isActive(item.href)
                       ? 'text-gray-900'
                       : 'text-gray-500 hover:text-gray-900'
                   )}
                 >
-                  <item.icon className="h-4 w-4" />
                   {item.name}
                   {isActive(item.href) && (
                     <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500" />
