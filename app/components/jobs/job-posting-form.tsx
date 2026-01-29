@@ -27,9 +27,35 @@ interface Employer {
   state?: string | null
 }
 
+interface JobData {
+  id: string
+  title: string
+  description: string
+  jobType: string
+  primaryTrade: string
+  city: string
+  state: string
+  zipCode: string | null
+  isRemote: boolean
+  payType: string
+  payRangeMin: number | null
+  payRangeMax: number | null
+  minYearsExperience: number | null
+  maxYearsExperience: number | null
+  requiredCertifications: string[]
+  benefits: string[]
+  contactName: string | null
+  contactEmail: string | null
+  contactPhone: string | null
+  status: string
+}
+
 interface JobPostingFormProps {
   employer: Employer
   orgId: string
+  mode?: 'create' | 'edit'
+  initialData?: JobData
+  onSuccess?: () => void
 }
 
 const tradeCategoryOptions: { value: TradeCategory; label: string }[] = [
@@ -110,7 +136,7 @@ const companySizeOptions = [
   { value: '500+', label: '500+ employees' },
 ]
 
-export default function JobPostingForm({ employer, orgId }: JobPostingFormProps) {
+export default function JobPostingForm({ employer, orgId, mode = 'create', initialData, onSuccess }: JobPostingFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -118,37 +144,39 @@ export default function JobPostingForm({ employer, orgId }: JobPostingFormProps)
   const [aiPrompt, setAiPrompt] = useState('')
   const [sectionsNeedingAttention, setSectionsNeedingAttention] = useState<string[]>([])
 
-  // Form state
+  const isEditMode = mode === 'edit'
+
+  // Form state - pre-populate with initialData if in edit mode
   const [formData, setFormData] = useState({
     // Basic Info
-    title: '',
-    description: '',
-    jobType: 'FULL_TIME',
+    title: initialData?.title || '',
+    description: initialData?.description || '',
+    jobType: initialData?.jobType || 'FULL_TIME',
 
     // Role Requirements
-    primaryTrade: '' as TradeCategory | '',
-    requiredCertifications: [] as string[],
-    minYearsExperience: '',
-    maxYearsExperience: '',
+    primaryTrade: (initialData?.primaryTrade || '') as TradeCategory | '',
+    requiredCertifications: initialData?.requiredCertifications || [] as string[],
+    minYearsExperience: initialData?.minYearsExperience?.toString() || '',
+    maxYearsExperience: initialData?.maxYearsExperience?.toString() || '',
 
     // Location
-    city: employer.city || '',
-    state: employer.state || '',
-    zipCode: '',
-    isRemote: false,
+    city: initialData?.city || employer.city || '',
+    state: initialData?.state || employer.state || '',
+    zipCode: initialData?.zipCode || '',
+    isRemote: initialData?.isRemote || false,
 
     // Compensation
-    payType: 'HOURLY',
-    payRangeMin: '',
-    payRangeMax: '',
+    payType: initialData?.payType || 'HOURLY',
+    payRangeMin: initialData?.payRangeMin?.toString() || '',
+    payRangeMax: initialData?.payRangeMax?.toString() || '',
 
     // Benefits
-    benefits: [] as string[],
+    benefits: initialData?.benefits || [] as string[],
 
     // Contact
-    contactName: '',
-    contactEmail: employer.contactEmail || '',
-    contactPhone: employer.contactPhone || '',
+    contactName: initialData?.contactName || '',
+    contactEmail: initialData?.contactEmail || employer.contactEmail || '',
+    contactPhone: initialData?.contactPhone || employer.contactPhone || '',
 
     // Company
     companySize: employer.size || '',
@@ -226,8 +254,11 @@ export default function JobPostingForm({ employer, orgId }: JobPostingFormProps)
     setError(null)
 
     try {
-      const response = await fetch('/api/jobs', {
-        method: 'POST',
+      const url = isEditMode ? `/api/jobs/${initialData?.id}` : '/api/jobs'
+      const method = isEditMode ? 'PATCH' : 'POST'
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
@@ -238,11 +269,15 @@ export default function JobPostingForm({ employer, orgId }: JobPostingFormProps)
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'Failed to create job posting')
+        throw new Error(data.error || `Failed to ${isEditMode ? 'update' : 'create'} job posting`)
       }
 
-      router.push(`/org/${orgId}/jobs`)
-      router.refresh()
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        router.push(`/org/${orgId}/jobs`)
+        router.refresh()
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
       setIsSubmitting(false)
@@ -807,20 +842,22 @@ export default function JobPostingForm({ employer, orgId }: JobPostingFormProps)
 
       {/* Actions */}
       <div className="flex items-center justify-end gap-3 py-6">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900"
-        >
-          Cancel
-        </button>
+        {!isEditMode && (
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900"
+          >
+            Cancel
+          </button>
+        )}
         <button
           type="button"
           onClick={(e) => handleSubmit(e, 'DRAFT')}
           disabled={isSubmitting}
           className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
         >
-          Save as Draft
+          {isEditMode ? 'Save as Draft' : 'Save as Draft'}
         </button>
         <button
           type="button"
@@ -828,7 +865,7 @@ export default function JobPostingForm({ employer, orgId }: JobPostingFormProps)
           disabled={isSubmitting}
           className="px-6 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50"
         >
-          {isSubmitting ? 'Publishing...' : 'Publish Job'}
+          {isSubmitting ? (isEditMode ? 'Saving...' : 'Publishing...') : (isEditMode ? 'Save & Publish' : 'Publish Job')}
         </button>
       </div>
     </form>

@@ -176,9 +176,9 @@ export default function HeaderNav({ children, orgData, user, unreadMessageCount 
         </nav>
       </header>
 
-      {/* Main Content - Full width for marketplace pages */}
+      {/* Main Content - Full width for marketplace and jobs pages */}
       <main className={clsx(
-        pathname.startsWith('/marketplace')
+        pathname.startsWith('/marketplace') || pathname.includes('/jobs')
           ? ''
           : 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8'
       )}>
