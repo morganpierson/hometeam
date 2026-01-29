@@ -11,7 +11,8 @@ import {
 } from '@heroicons/react/24/outline'
 import CandidateMessageInput from './message-input'
 
-export const dynamic = 'force-dynamic'
+// Messages need to be fresh - revalidate on each request
+export const revalidate = 0
 
 function formatMessageTime(date: Date): string {
   const now = new Date()

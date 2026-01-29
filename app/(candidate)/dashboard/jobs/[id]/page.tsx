@@ -14,7 +14,8 @@ import {
   BookmarkIcon,
 } from '@heroicons/react/24/outline'
 
-export const dynamic = 'force-dynamic'
+// Revalidate job details every 60 seconds for better performance
+export const revalidate = 60
 
 const tradeCategoryLabels: Record<string, string> = {
   ELECTRICIAN: 'Electrician',

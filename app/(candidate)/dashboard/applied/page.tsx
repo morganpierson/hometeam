@@ -11,7 +11,8 @@ import {
 import Link from 'next/link'
 import Image from 'next/image'
 
-export const dynamic = 'force-dynamic'
+// Revalidate applications every 30 seconds
+export const revalidate = 30
 
 const statusColors: Record<string, { bg: string; text: string }> = {
   pending: { bg: 'bg-yellow-50', text: 'text-yellow-700' },

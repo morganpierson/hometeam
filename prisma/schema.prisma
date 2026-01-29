@@ -615,6 +615,7 @@ model Conversation {
   jobApplication       JobApplication?
 
   @@index([projectId])
+  @@index([updatedAt])
 }
 
 // Message = Individual message in a conversation
@@ -638,6 +639,8 @@ model Message {
 
   @@index([conversationId])
   @@index([senderId])
+  @@index([conversationId, readAt])
+  @@index([senderType, readAt])
 }
 
 // ============================================================================

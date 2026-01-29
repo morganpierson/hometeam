@@ -100,7 +100,8 @@ Also include a "needsAttention" array listing which sections need employer revie
 Respond ONLY with the JSON object, no additional text or markdown formatting.`
 
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      // Using Haiku for cost efficiency - job generation is straightforward extraction
+      model: 'claude-3-haiku-20240307',
       max_tokens: 1500,
       messages: [
         { role: 'user', content: prompt },
