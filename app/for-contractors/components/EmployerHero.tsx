@@ -23,7 +23,7 @@ export function EmployerHero() {
         showcase your best work, and grow your contracting business.
       </p>
       <div className="mt-10 flex justify-center gap-x-6">
-        <Button href="/sign-up?role=employer">Start hiring for free</Button>
+        <Button href="/sign-up?redirect_url=/new-user?role=employer">Start hiring for free</Button>
         <Button href="#features" variant="outline">
           See how it works
         </Button>

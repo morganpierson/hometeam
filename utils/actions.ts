@@ -3,12 +3,10 @@
 import { redirect } from 'next/navigation'
 import { prisma } from './db'
 import { getEmployeeByClerkID } from './auth'
-import { promises as fs } from 'fs'
 import { revalidatePath } from 'next/cache'
 import { put } from '@vercel/blob'
 import OpenAI from 'openai'
-import PDFParser from 'pdf2json'
-import { v4 as uuidv4 } from 'uuid'
+import pdfParse from 'pdf-parse'
 import { TradeCategory, ParticipantType } from '@prisma/client'
 
 // Action result type
@@ -81,40 +79,20 @@ const parseResume = async (formData: FormData): Promise<string | null> => {
     return null
   }
 
-  const fileName = uuidv4()
-  const tempFilePath = `/tmp/${fileName}.pdf`
-  const fileBuffer = Buffer.from(await uploadedFile.arrayBuffer())
+  try {
+    const fileBuffer = Buffer.from(await uploadedFile.arrayBuffer())
+    const data = await pdfParse(fileBuffer)
+    const parsedText = data.text
 
-  // Save the buffer as a file
-  await fs.writeFile(tempFilePath, fileBuffer)
+    const firstName = formData.get('firstName')?.toString() || ''
+    const summaryChunks = await generateSummary(parsedText, firstName)
+    const summary = summaryChunks.join(' ')
 
-  // Parse the PDF using pdf2json wrapped in Promise
-  return new Promise((resolve, reject) => {
-    const pdfParser = new PDFParser()
-
-    pdfParser.on('pdfParser_dataError', (errData: { parserError: Error }) => {
-      console.error('PDF parsing error:', errData.parserError)
-      reject(errData.parserError)
-    })
-
-    pdfParser.on('pdfParser_dataReady', async () => {
-      try {
-        const parsedText = (pdfParser as unknown as { getRawTextContent: () => string }).getRawTextContent()
-        const firstName = formData.get('firstName')?.toString() || ''
-        const summaryChunks = await generateSummary(parsedText, firstName)
-        const summary = summaryChunks.join(' ')
-
-        // Clean up temp file
-        await fs.unlink(tempFilePath).catch(() => {})
-
-        resolve(summary)
-      } catch (error) {
-        reject(error)
-      }
-    })
-
-    pdfParser.loadPDF(tempFilePath)
-  })
+    return summary
+  } catch (error) {
+    console.error('PDF parsing error:', error)
+    return null
+  }
 }
 
 // ============================================================================
@@ -561,7 +539,10 @@ export const getSavedCandidates = async (employerId: string) => {
 }
 
 // Send a message (for hire offers or general communication)
-export const sendMessage = async (formData: FormData): Promise<ActionResult> => {
+export const sendMessage = async (
+  prevState: ActionResult,
+  formData: FormData
+): Promise<ActionResult> => {
   try {
     const sendingEmployee = await getEmployeeByClerkID()
     const candidateId = formData.get('candidateId')?.toString()
@@ -609,8 +590,8 @@ export const sendMessage = async (formData: FormData): Promise<ActionResult> => 
         messages: {
           create: {
             content: message,
-            senderId: sendingEmployee.id,
-            senderType: ParticipantType.EMPLOYEE,
+            senderId: sendingEmployer.id,
+            senderType: ParticipantType.EMPLOYER,
           },
         },
       },

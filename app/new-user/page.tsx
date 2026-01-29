@@ -81,7 +81,12 @@ const NewUser = async ({ searchParams }: NewUserProps) => {
 
   // If existing employee but no role specified, redirect to their appropriate onboarding
   if (existingEmployee) {
-    redirect('/onboarding')
+    // If they haven't completed onboarding, send to employee onboarding
+    if (!existingEmployee.tradeCategory) {
+      redirect('/onboarding/employee')
+    }
+    // Otherwise send to dashboard
+    redirect('/dashboard')
   }
 
   // No role specified - show role selection

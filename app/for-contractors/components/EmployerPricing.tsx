@@ -125,7 +125,7 @@ export function EmployerPricing() {
             name="Starter"
             price="Free"
             description="Perfect for small crews getting started."
-            href="/sign-up?role=employer"
+            href="/sign-up?redirect_url=/new-user?role=employer"
             features={[
               'Up to 5 team members',
               'Basic talent marketplace access',
@@ -138,7 +138,7 @@ export function EmployerPricing() {
             name="Professional"
             price="$49/mo"
             description="For growing contractors ready to scale."
-            href="/sign-up?role=employer"
+            href="/sign-up?redirect_url=/new-user?role=employer"
             features={[
               'Up to 25 team members',
               'Priority marketplace access',
@@ -152,7 +152,7 @@ export function EmployerPricing() {
             name="Enterprise"
             price="Custom"
             description="For large operations with complex needs."
-            href="/sign-up?role=employer"
+            href="/sign-up?redirect_url=/new-user?role=employer"
             features={[
               'Unlimited team members',
               'Dedicated account manager',

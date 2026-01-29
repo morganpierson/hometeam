@@ -6,6 +6,7 @@ import Link from 'next/link'
 import {
   DocumentTextIcon,
   ArrowPathIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline'
 
 interface ResumeHeaderActionsProps {
@@ -79,15 +80,18 @@ export default function ResumeHeaderActions({ resumeUrl }: ResumeHeaderActionsPr
       <button
         onClick={handleUploadClick}
         disabled={isUploading}
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 text-sm text-violet-600 hover:text-violet-700 disabled:opacity-50"
       >
         {isUploading ? (
           <>
             <ArrowPathIcon className="h-4 w-4 animate-spin" />
-            Uploading...
+            Processing...
           </>
         ) : (
-          'Upload new resume'
+          <>
+            <SparklesIcon className="h-4 w-4" />
+            Update with AI
+          </>
         )}
       </button>
       <input

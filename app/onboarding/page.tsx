@@ -20,10 +20,15 @@ export default async function Onboarding() {
   }
 
   if (employee.employerId) {
-    // Already has an employer, go to dashboard
+    // Already has an employer, go to org dashboard
     redirect(`/org/${employee.employerId}`)
   }
 
-  // No employer - redirect to role selection
-  redirect('/new-user')
+  // Employee exists but hasn't completed onboarding - go to employee onboarding
+  if (!employee.tradeCategory) {
+    redirect('/onboarding/employee')
+  }
+
+  // Employee has completed onboarding, go to candidate dashboard
+  redirect('/dashboard')
 }
