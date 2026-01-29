@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs'
 import { prisma } from '@/utils/db'
+import { sendNewApplicationEmail } from '@/utils/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -98,6 +99,18 @@ export async function POST(request: NextRequest) {
 
       return { application, conversation }
     })
+
+    // Send email notification to employer (fire-and-forget)
+    if (jobPosting.employer.contactEmail) {
+      const candidateName = [candidate.firstName, candidate.lastName].filter(Boolean).join(' ') || 'A candidate'
+      sendNewApplicationEmail({
+        employerEmail: jobPosting.employer.contactEmail,
+        employerName: jobPosting.employer.name,
+        candidateName,
+        jobTitle: jobPosting.title,
+        applicationId: result.application.id,
+      })
+    }
 
     return NextResponse.json({
       success: true,

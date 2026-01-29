@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs'
 import { prisma } from '@/utils/db'
+import { sendApplicationAcceptedEmail } from '@/utils/email'
 
 interface RouteParams {
   params: { id: string }
@@ -24,6 +25,11 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
             id: true,
             title: true,
             employerId: true,
+            employer: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
         applicant: {
@@ -31,6 +37,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
             id: true,
             firstName: true,
             lastName: true,
+            email: true,
           },
         },
         conversation: true,
@@ -104,6 +111,18 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
       return newConversation
     })
+
+    // Send email notification to candidate (fire-and-forget)
+    if (application.applicant.email) {
+      const candidateName = [application.applicant.firstName, application.applicant.lastName].filter(Boolean).join(' ') || 'Candidate'
+      sendApplicationAcceptedEmail({
+        candidateEmail: application.applicant.email,
+        candidateName,
+        employerName: application.jobPosting.employer.name,
+        jobTitle: application.jobPosting.title,
+        conversationId: conversation.id,
+      })
+    }
 
     return NextResponse.json({
       conversationId: conversation.id,

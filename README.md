@@ -27,6 +27,27 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 
+## Email Notifications (Resend)
+
+Email notifications are sent for:
+- **New applications** - Employer receives email when a candidate applies
+- **Application accepted** - Candidate receives email when employer accepts their application
+
+### Development Setup
+Add to `.env.local`:
+```
+RESEND_API_KEY=re_xxxxxxxxxxxx
+```
+
+### Production Checklist
+Before going to production with email:
+
+1. **Verify your domain** in [Resend dashboard](https://resend.com/domains) (e.g., `yourdomain.com`)
+2. **Add DNS records** - SPF, DKIM, and DMARC records as provided by Resend
+3. **Update `FROM_EMAIL`** in `utils/email.ts` from `notifications@resend.dev` to `notifications@yourdomain.com`
+4. **Set `NEXT_PUBLIC_APP_URL`** environment variable to your production URL (ensures email links work correctly)
+5. **Use production API key** - Replace test key with production key in environment variables
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
