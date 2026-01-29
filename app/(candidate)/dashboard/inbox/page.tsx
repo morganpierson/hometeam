@@ -9,7 +9,8 @@ import {
   ChevronRightIcon,
 } from '@heroicons/react/24/outline'
 
-export const dynamic = 'force-dynamic'
+// Messages need to be fresh - revalidate on each request
+export const revalidate = 0
 
 function formatTimeAgo(date: Date): string {
   const now = new Date()

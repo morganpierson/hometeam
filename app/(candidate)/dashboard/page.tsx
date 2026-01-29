@@ -12,7 +12,8 @@ import {
   ChevronDownIcon,
 } from '@heroicons/react/24/outline'
 
-export const dynamic = 'force-dynamic'
+// Revalidate dashboard every 30 seconds for balance of freshness and performance
+export const revalidate = 30
 
 const tradeCategoryLabels: Record<string, string> = {
   ELECTRICIAN: 'Electrician',

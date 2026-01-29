@@ -5,7 +5,8 @@ import { Prisma } from '@prisma/client'
 import JobSearch from './job-search'
 import JobList from './job-list'
 
-export const dynamic = 'force-dynamic'
+// Revalidate job listings every 60 seconds for better performance
+export const revalidate = 60
 
 interface PageProps {
   searchParams: { q?: string; location?: string }

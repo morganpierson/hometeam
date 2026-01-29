@@ -14,7 +14,8 @@ import ResumeUpload from '../../components/resume-upload'
 import ResumeSummary from '../../components/resume-summary'
 import ResumeHeaderActions from '../../components/resume-header-actions'
 
-export const dynamic = 'force-dynamic'
+// Profile page with short cache time
+export const revalidate = 30
 
 const tradeCategoryLabels: Record<string, string> = {
   ELECTRICIAN: 'Electrician',

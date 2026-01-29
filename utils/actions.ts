@@ -5,8 +5,6 @@ import { prisma } from './db'
 import { getEmployeeByClerkID } from './auth'
 import { revalidatePath } from 'next/cache'
 import { put } from '@vercel/blob'
-import OpenAI from 'openai'
-import pdfParse from 'pdf-parse'
 import { TradeCategory, ParticipantType } from '@prisma/client'
 
 // Action result type
@@ -16,83 +14,13 @@ type ActionResult = {
   data?: unknown
 }
 
-const openai = new OpenAI({
-  apiKey: process.env['OPEN_AI_API_KEY'],
-})
-
-const splitText = async (text: string): Promise<string[]> => {
-  const maxChunkSize = 2048
-  const chunks: string[] = []
-  let currentChunk = ''
-  text.split(/(?=[A-Z])/).forEach((sentence) => {
-    if (currentChunk.length + sentence.length < maxChunkSize) {
-      currentChunk += sentence + '.'
-    } else {
-      chunks.push(currentChunk.trim())
-      currentChunk = sentence + '.'
-    }
-  })
-
-  if (currentChunk) {
-    chunks.push(currentChunk.trim())
-  }
-  return chunks
-}
-
-const generateSummary = async (
-  text: string,
-  firstName: string
-): Promise<string[]> => {
-  const inputChunks = await splitText(text)
-  const outputChunks: string[] = []
-
-  for (const chunk of inputChunks) {
-    const response = await openai.chat.completions.create({
-      messages: [
-        {
-          role: 'user',
-          content: `Summarize the following text in 2 sentences or less. Summarize it in the third person narrative of ${firstName}: \n${chunk}\n`,
-        },
-      ],
-      model: 'gpt-3.5-turbo',
-    })
-    const content = response.choices[0].message.content
-    if (content) {
-      outputChunks.push(content)
-    }
-  }
-
-  return outputChunks
-}
-
+// Note: Resume parsing with AI is now handled by /api/resume/parse using Anthropic
+// This simplified version just returns null - employees can parse their resume
+// through the dedicated onboarding flow or profile page
 const parseResume = async (formData: FormData): Promise<string | null> => {
-  const uploadedFiles = formData.get('resume')
-
-  if (!uploadedFiles) {
-    return null
-  }
-
-  const uploadedFile = uploadedFiles
-
-  if (!(uploadedFile instanceof File)) {
-    console.error('Uploaded file is not in the expected format.')
-    return null
-  }
-
-  try {
-    const fileBuffer = Buffer.from(await uploadedFile.arrayBuffer())
-    const data = await pdfParse(fileBuffer)
-    const parsedText = data.text
-
-    const firstName = formData.get('firstName')?.toString() || ''
-    const summaryChunks = await generateSummary(parsedText, firstName)
-    const summary = summaryChunks.join(' ')
-
-    return summary
-  } catch (error) {
-    console.error('PDF parsing error:', error)
-    return null
-  }
+  // Resume summary will be generated when employee uses the AI resume parser
+  // in their profile or during onboarding
+  return null
 }
 
 // ============================================================================
@@ -191,20 +119,69 @@ export const createNewEmployee = async (
 }
 
 // FETCH EMPLOYEES TO DISPLAY ON MARKETPLACE PAGE
-export const fetchMarketplaceEmployees = async () => {
-  const availableEmployees = await prisma.employee.findMany({
-    where: {
-      isAvailableForHire: true,
+export const fetchMarketplaceEmployees = async (page: number = 1, limit: number = 20) => {
+  const skip = (page - 1) * limit
+
+  const [availableEmployees, totalCount] = await Promise.all([
+    prisma.employee.findMany({
+      where: {
+        isAvailableForHire: true,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        profileImage: true,
+        bio: true,
+        resumeSummary: true,
+        tradeCategory: true,
+        yearsExperience: true,
+        hourlyRate: true,
+        location: true,
+        isBackgroundChecked: true,
+        isInsured: true,
+        availability: true,
+        employer: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+          },
+        },
+        certifications: {
+          select: {
+            id: true,
+            name: true,
+            issuingBody: true,
+            verified: true,
+          },
+        },
+      },
+      orderBy: [
+        { isBackgroundChecked: 'desc' },
+        { yearsExperience: 'desc' },
+        { createdAt: 'desc' },
+      ],
+      skip,
+      take: limit,
+    }),
+    prisma.employee.count({
+      where: {
+        isAvailableForHire: true,
+      },
+    }),
+  ])
+
+  return {
+    employees: availableEmployees,
+    pagination: {
+      page,
+      limit,
+      totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+      hasMore: skip + availableEmployees.length < totalCount,
     },
-    include: {
-      employer: true,
-      hireOffers: true,
-      certifications: true,
-      ownedPortfolioItems: true,
-      contributions: true,
-    },
-  })
-  return availableEmployees
+  }
 }
 
 export const fetchEmployee = async (id: string) => {
