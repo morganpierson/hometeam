@@ -281,12 +281,9 @@ export default async function CandidateDashboard() {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={(e) => e.preventDefault()}
-                  className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50"
-                >
+                <span className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg">
                   Save
-                </button>
+                </span>
               </Link>
             ))}
           </div>
