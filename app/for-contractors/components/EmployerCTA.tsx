@@ -27,7 +27,7 @@ export function EmployerCTA() {
             Join hundreds of contractors who are finding top talent faster and building
             stronger teams. Get started in minutes.
           </p>
-          <Button href="/sign-up?role=employer" color="white" className="mt-10">
+          <Button href="/sign-up?redirect_url=/new-user?role=employer" color="white" className="mt-10">
             Start hiring for free
           </Button>
         </div>

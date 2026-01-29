@@ -18,18 +18,21 @@ export const metadata = {
 export default async function ForContractors() {
   const { userId } = await auth()
 
-  // If user is logged in, redirect them to their dashboard
+  // If user is logged in, redirect them appropriately
   if (userId) {
     const employee = await prisma.employee.findUnique({
       where: { clerkId: userId },
     })
 
     if (employee?.employerId) {
+      // Already has an org, go to org dashboard
       redirect(`/org/${employee.employerId}`)
     } else if (employee) {
-      redirect('/onboarding')
+      // Has employee record but no org - send to employer onboarding
+      redirect('/onboarding/employer')
     } else {
-      redirect('/new-user')
+      // No employee record - create one and go to employer onboarding
+      redirect('/new-user?role=employer')
     }
   }
 

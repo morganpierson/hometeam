@@ -132,7 +132,7 @@ export function EmployerHeader() {
             <div className="hidden md:block">
               <NavLink href="/sign-in">Sign in</NavLink>
             </div>
-            <Button href="/sign-up?role=employer" color="blue">
+            <Button href="/sign-up?redirect_url=/new-user?role=employer" color="blue">
               <span>
                 Start hiring <span className="hidden lg:inline">today</span>
               </span>

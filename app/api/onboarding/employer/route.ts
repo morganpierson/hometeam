@@ -3,6 +3,29 @@ import { auth } from '@clerk/nextjs'
 import { prisma } from '@/utils/db'
 import { TradeCategory } from '@prisma/client'
 
+// Valid TradeCategory values from Prisma schema
+const VALID_TRADE_CATEGORIES = new Set<string>([
+  'ELECTRICIAN',
+  'PLUMBER',
+  'HVAC',
+  'CARPENTER',
+  'ROOFER',
+  'PAINTER',
+  'MASON',
+  'WELDER',
+  'GENERAL_CONTRACTOR',
+  'LANDSCAPER',
+  'CONCRETE',
+  'DRYWALL',
+  'FLOORING',
+  'GLAZIER',
+  'INSULATION',
+  'IRONWORKER',
+  'SHEET_METAL',
+  'TILE_SETTER',
+  'OTHER',
+])
+
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth()
@@ -32,7 +55,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!specialties || specialties.length === 0) {
+    // Filter specialties to only include valid TradeCategory values
+    const validSpecialties = (specialties || []).filter(
+      (s: string) => VALID_TRADE_CATEGORIES.has(s)
+    )
+
+    if (validSpecialties.length === 0) {
       return NextResponse.json(
         { error: 'At least one specialty is required' },
         { status: 400 }
@@ -93,7 +121,7 @@ export async function POST(req: NextRequest) {
           state,
           zipCode,
           description: description || null,
-          specialties: specialties as TradeCategory[],
+          specialties: validSpecialties as TradeCategory[],
         },
       })
 
