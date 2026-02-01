@@ -26,6 +26,16 @@ interface ApplicationAcceptedEmailParams {
   conversationId: string
 }
 
+interface NewMessageEmailParams {
+  recipientEmail: string
+  recipientName: string
+  senderName: string
+  messagePreview: string
+  conversationId: string
+  isEmployerRecipient: boolean
+  employerId?: string
+}
+
 /**
  * Sends an email to the employer when a candidate applies to their job posting.
  * Fire-and-forget: errors are logged but don't block the main flow.
@@ -136,5 +146,74 @@ export async function sendApplicationAcceptedEmail({
     console.log(`[Email] Application accepted email sent to ${candidateEmail}, id: ${data?.id}`)
   } catch (error) {
     console.error('[Email] Failed to send application accepted email:', error)
+  }
+}
+
+/**
+ * Sends an email notification when a new message is received in a conversation.
+ * Fire-and-forget: errors are logged but don't block the main flow.
+ */
+export async function sendNewMessageEmail({
+  recipientEmail,
+  recipientName,
+  senderName,
+  messagePreview,
+  conversationId,
+  isEmployerRecipient,
+  employerId,
+}: NewMessageEmailParams): Promise<void> {
+  console.log(`[Email] sendNewMessageEmail called - to: ${recipientEmail}, from: ${senderName}`)
+
+  if (!resend) {
+    console.warn('[Email] Resend not configured (RESEND_API_KEY missing), skipping email notification')
+    return
+  }
+
+  if (!recipientEmail) {
+    console.warn('[Email] No recipient email provided, skipping notification')
+    return
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const viewUrl = isEmployerRecipient
+    ? `${baseUrl}/org/${employerId}/messages/${conversationId}`
+    : `${baseUrl}/dashboard/messages/${conversationId}`
+
+  const truncatedPreview = messagePreview.length > 150
+    ? messagePreview.slice(0, 150) + '...'
+    : messagePreview
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: recipientEmail,
+      subject: `New message from ${senderName}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #1a1a1a;">New Message</h2>
+          <p>Hi ${recipientName || 'there'},</p>
+          <p><strong>${senderName}</strong> sent you a message:</p>
+          <div style="background-color: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0;">
+            <p style="margin: 0; color: #333;">"${truncatedPreview}"</p>
+          </div>
+          <a href="${viewUrl}"
+             style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 16px;">
+            View Conversation
+          </a>
+          <p style="color: #666; margin-top: 24px; font-size: 14px;">
+            You're receiving this email because you have an active conversation on our platform.
+          </p>
+        </div>
+      `,
+    })
+
+    if (error) {
+      console.error('[Email] Resend API error:', error)
+      return
+    }
+
+    console.log(`[Email] New message email sent to ${recipientEmail}, id: ${data?.id}`)
+  } catch (error) {
+    console.error('[Email] Failed to send new message email:', error)
   }
 }
