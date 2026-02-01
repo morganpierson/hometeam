@@ -4,6 +4,9 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null
 
+// Log whether Resend is configured (helps debug production issues)
+console.log(`[Email] Resend configured: ${resend !== null}`)
+
 const FROM_EMAIL = 'notifications@send.workbench.careers'
 
 interface NewApplicationEmailParams {
@@ -35,13 +38,15 @@ export async function sendNewApplicationEmail({
   jobTitle,
   jobId,
 }: NewApplicationEmailParams): Promise<void> {
+  console.log(`[Email] sendNewApplicationEmail called - to: ${employerEmail}, job: ${jobTitle}`)
+
   if (!resend) {
-    console.warn('Resend not configured, skipping email notification')
+    console.warn('[Email] Resend not configured (RESEND_API_KEY missing), skipping email notification')
     return
   }
 
   if (!employerEmail) {
-    console.warn('No employer email provided, skipping notification')
+    console.warn('[Email] No employer email provided, skipping notification')
     return
   }
 
@@ -68,13 +73,13 @@ export async function sendNewApplicationEmail({
     })
 
     if (error) {
-      console.error('Resend API error:', error)
+      console.error('[Email] Resend API error:', error)
       return
     }
 
-    console.log(`New application email sent to ${employerEmail}, id: ${data?.id}`)
+    console.log(`[Email] New application email sent to ${employerEmail}, id: ${data?.id}`)
   } catch (error) {
-    console.error('Failed to send new application email:', error)
+    console.error('[Email] Failed to send new application email:', error)
   }
 }
 
@@ -89,13 +94,15 @@ export async function sendApplicationAcceptedEmail({
   jobTitle,
   conversationId,
 }: ApplicationAcceptedEmailParams): Promise<void> {
+  console.log(`[Email] sendApplicationAcceptedEmail called - to: ${candidateEmail}, job: ${jobTitle}`)
+
   if (!resend) {
-    console.warn('Resend not configured, skipping email notification')
+    console.warn('[Email] Resend not configured (RESEND_API_KEY missing), skipping email notification')
     return
   }
 
   if (!candidateEmail) {
-    console.warn('No candidate email provided, skipping notification')
+    console.warn('[Email] No candidate email provided, skipping notification')
     return
   }
 
@@ -122,12 +129,12 @@ export async function sendApplicationAcceptedEmail({
     })
 
     if (error) {
-      console.error('Resend API error:', error)
+      console.error('[Email] Resend API error:', error)
       return
     }
 
-    console.log(`Application accepted email sent to ${candidateEmail}, id: ${data?.id}`)
+    console.log(`[Email] Application accepted email sent to ${candidateEmail}, id: ${data?.id}`)
   } catch (error) {
-    console.error('Failed to send application accepted email:', error)
+    console.error('[Email] Failed to send application accepted email:', error)
   }
 }
