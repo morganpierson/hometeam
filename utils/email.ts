@@ -4,14 +4,15 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null
 
-const FROM_EMAIL = 'notifications@resend.dev' // Replace with your verified domain
+const FROM_EMAIL = 'notifications@send.workbench.careers'
 
 interface NewApplicationEmailParams {
   employerEmail: string
+  employerId: string
   employerName: string
   candidateName: string
   jobTitle: string
-  applicationId: string
+  jobId: string
 }
 
 interface ApplicationAcceptedEmailParams {
@@ -28,10 +29,11 @@ interface ApplicationAcceptedEmailParams {
  */
 export async function sendNewApplicationEmail({
   employerEmail,
+  employerId,
   employerName,
   candidateName,
   jobTitle,
-  applicationId,
+  jobId,
 }: NewApplicationEmailParams): Promise<void> {
   if (!resend) {
     console.warn('Resend not configured, skipping email notification')
@@ -44,7 +46,7 @@ export async function sendNewApplicationEmail({
   }
 
   try {
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: employerEmail,
       subject: `New Application: ${candidateName} applied for ${jobTitle}`,
@@ -54,7 +56,7 @@ export async function sendNewApplicationEmail({
           <p>Hi ${employerName || 'there'},</p>
           <p><strong>${candidateName}</strong> has applied for the <strong>${jobTitle}</strong> position.</p>
           <p>Log in to your dashboard to review their application and connect with them.</p>
-          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/org/applications/${applicationId}"
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/org/${employerId}/jobs/${jobId}/applicants"
              style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 16px;">
             Review Application
           </a>
@@ -64,7 +66,13 @@ export async function sendNewApplicationEmail({
         </div>
       `,
     })
-    console.log(`New application email sent to ${employerEmail}`)
+
+    if (error) {
+      console.error('Resend API error:', error)
+      return
+    }
+
+    console.log(`New application email sent to ${employerEmail}, id: ${data?.id}`)
   } catch (error) {
     console.error('Failed to send new application email:', error)
   }
@@ -92,7 +100,7 @@ export async function sendApplicationAcceptedEmail({
   }
 
   try {
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: candidateEmail,
       subject: `Good news! ${employerName} wants to connect about ${jobTitle}`,
@@ -112,7 +120,13 @@ export async function sendApplicationAcceptedEmail({
         </div>
       `,
     })
-    console.log(`Application accepted email sent to ${candidateEmail}`)
+
+    if (error) {
+      console.error('Resend API error:', error)
+      return
+    }
+
+    console.log(`Application accepted email sent to ${candidateEmail}, id: ${data?.id}`)
   } catch (error) {
     console.error('Failed to send application accepted email:', error)
   }

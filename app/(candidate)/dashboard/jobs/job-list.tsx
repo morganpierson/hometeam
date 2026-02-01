@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import JobCard, { Job } from './job-card'
 import JobDetailModal from './job-detail-modal'
@@ -15,8 +15,38 @@ interface JobListProps {
 export default function JobList({ jobs, userTrade, query, location }: JobListProps) {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const trackedViewsRef = useRef<Set<string>>(new Set())
+
+  // Track job views (impressions) when jobs are displayed
+  useEffect(() => {
+    if (jobs.length === 0) return
+
+    // Filter out jobs we've already tracked in this session
+    const newJobIds = jobs
+      .map(job => job.id)
+      .filter(id => !trackedViewsRef.current.has(id))
+
+    if (newJobIds.length === 0) return
+
+    // Track views
+    fetch('/api/jobs/track/view', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobIds: newJobIds, source: 'search' }),
+    }).catch(console.error)
+
+    // Mark these jobs as tracked
+    newJobIds.forEach(id => trackedViewsRef.current.add(id))
+  }, [jobs])
 
   const handleLearnMore = (job: Job) => {
+    // Track the click
+    fetch('/api/jobs/track/click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId: job.id, source: 'search' }),
+    }).catch(console.error)
+
     setSelectedJob(job)
     setIsModalOpen(true)
   }

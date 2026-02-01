@@ -3,6 +3,9 @@ import { prisma } from '@/utils/db'
 import { getEmployeeByClerkID } from '@/utils/auth'
 import JobsContent from './jobs-content'
 
+// Cache jobs list for 2 minutes
+export const revalidate = 120
+
 interface JobsPageProps {
   params: { id: string }
   searchParams: { jobId?: string }
@@ -26,6 +29,8 @@ export default async function JobsPage({ params, searchParams }: JobsPageProps) 
       _count: {
         select: {
           applications: true,
+          views: true,
+          clicks: true,
         },
       },
       applications: {
@@ -87,6 +92,8 @@ export default async function JobsPage({ params, searchParams }: JobsPageProps) 
     contactEmail: job.contactEmail,
     contactPhone: job.contactPhone,
     applicantCount: job._count.applications,
+    viewCount: job._count.views,
+    clickCount: job._count.clicks,
     applicants: job.applications.map(app => ({
       id: app.applicant.id,
       applicationId: app.id,

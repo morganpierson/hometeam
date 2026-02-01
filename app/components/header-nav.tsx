@@ -73,6 +73,7 @@ export default function HeaderNav({ children, orgData, user, unreadMessageCount 
                   <Link
                     key={item.name}
                     href={item.href}
+                    prefetch={true}
                     className={clsx(
                       'relative px-4 py-4 text-sm font-medium transition-colors',
                       isActive(item.href)
@@ -145,6 +146,7 @@ export default function HeaderNav({ children, orgData, user, unreadMessageCount 
                   <Link
                     key={item.name}
                     href={item.href}
+                    prefetch={true}
                     onClick={() => setMobileMenuOpen(false)}
                     className={clsx(
                       'flex items-center justify-between rounded-lg px-3 py-2 text-base font-medium',

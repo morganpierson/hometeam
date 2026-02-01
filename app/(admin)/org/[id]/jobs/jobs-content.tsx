@@ -23,6 +23,8 @@ import {
   BuildingOffice2Icon,
   SparklesIcon,
   UserCircleIcon,
+  CursorArrowRaysIcon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline'
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid'
 import JobPostingForm from '@/app/components/jobs/job-posting-form'
@@ -91,6 +93,8 @@ interface Job {
   contactEmail: string | null
   contactPhone: string | null
   applicantCount: number
+  viewCount: number
+  clickCount: number
   applicants: Applicant[]
   createdAt: Date
   updatedAt: Date
@@ -529,6 +533,43 @@ export default function JobsContent({
 
             {viewMode === 'overview' && (
               <>
+                {/* Performance Metrics */}
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="bg-white border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-50 rounded-lg">
+                        <EyeIcon className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-semibold text-gray-900">{selectedJob.viewCount}</p>
+                        <p className="text-sm text-gray-500">Impressions</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-amber-50 rounded-lg">
+                        <CursorArrowRaysIcon className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-semibold text-gray-900">{selectedJob.clickCount}</p>
+                        <p className="text-sm text-gray-500">Clicks</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-green-50 rounded-lg">
+                        <UsersIcon className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-semibold text-gray-900">{selectedJob.applicantCount}</p>
+                        <p className="text-sm text-gray-500">Applications</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Job Details Card */}
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               {/* Card Header */}

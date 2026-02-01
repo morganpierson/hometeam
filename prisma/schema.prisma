@@ -155,6 +155,10 @@ model Employee {
   // Job applications
   jobApplications      JobApplication[]
 
+  // Job metrics tracking
+  jobViews             JobView[]
+  jobClicks            JobClick[]
+
   // Work experience (parsed from resume)
   workExperiences      WorkExperience[]
 
@@ -308,6 +312,10 @@ model JobPosting {
   // Applications
   applications         JobApplication[]
 
+  // Metrics tracking
+  views                JobView[]
+  clicks               JobClick[]
+
   @@index([employerId])
   @@index([status])
   @@index([primaryTrade])
@@ -339,6 +347,48 @@ model JobApplication {
   @@index([jobPostingId])
   @@index([applicantId])
   @@index([status])
+}
+
+// JobView = Tracks when a job appears in search results (impressions)
+model JobView {
+  id                   String              @id @default(uuid())
+  createdAt            DateTime            @default(now())
+
+  // The job that was viewed
+  jobPostingId         String
+  jobPosting           JobPosting          @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+
+  // The candidate who viewed (optional - could be anonymous)
+  viewerId             String?
+  viewer               Employee?           @relation(fields: [viewerId], references: [id])
+
+  // Context
+  source               String?             // "search", "recommended", "direct"
+
+  @@index([jobPostingId])
+  @@index([viewerId])
+  @@index([createdAt])
+}
+
+// JobClick = Tracks when a candidate clicks to view job details
+model JobClick {
+  id                   String              @id @default(uuid())
+  createdAt            DateTime            @default(now())
+
+  // The job that was clicked
+  jobPostingId         String
+  jobPosting           JobPosting          @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+
+  // The candidate who clicked
+  clickerId            String
+  clicker              Employee            @relation(fields: [clickerId], references: [id])
+
+  // Context
+  source               String?             // "search", "recommended", "direct"
+
+  @@index([jobPostingId])
+  @@index([clickerId])
+  @@index([createdAt])
 }
 
 // ============================================================================

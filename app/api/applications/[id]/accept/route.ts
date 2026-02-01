@@ -65,12 +65,24 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
     // If conversation already exists, just return it
     if (application.conversation) {
-      // Update status to reviewing if still pending
+      // Update status to reviewing if still pending and send notification
       if (application.status === 'pending') {
         await prisma.jobApplication.update({
           where: { id: params.id },
           data: { status: 'reviewing' },
         })
+
+        // Send email notification to candidate (fire-and-forget)
+        if (application.applicant.email) {
+          const candidateName = [application.applicant.firstName, application.applicant.lastName].filter(Boolean).join(' ') || 'Candidate'
+          sendApplicationAcceptedEmail({
+            candidateEmail: application.applicant.email,
+            candidateName,
+            employerName: application.jobPosting.employer.name,
+            jobTitle: application.jobPosting.title,
+            conversationId: application.conversation.id,
+          })
+        }
       }
 
       return NextResponse.json({

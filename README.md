@@ -39,6 +39,8 @@ Add to `.env.local`:
 RESEND_API_KEY=re_xxxxxxxxxxxx
 ```
 
+**Note:** With Resend's test domain (`notifications@resend.dev`), emails can only be sent to the email address associated with your Resend account. To test emails to other recipients, you must verify a domain first.
+
 ### Production Checklist
 Before going to production with email:
 

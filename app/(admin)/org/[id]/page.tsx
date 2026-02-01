@@ -3,6 +3,9 @@ import { prisma } from '@/utils/db'
 import EmployerDashboard from '@/app/components/dashboard/employer-dashboard'
 import { TradeCategory } from '@prisma/client'
 
+// Cache dashboard for 5 minutes for faster navigation
+export const revalidate = 300
+
 const getDashboardData = async () => {
   const currentUser = await getEmployeeByClerkID()
 

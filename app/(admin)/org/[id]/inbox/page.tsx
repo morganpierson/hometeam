@@ -8,6 +8,9 @@ import {
   ChevronRightIcon,
 } from '@heroicons/react/24/outline'
 
+// Cache inbox list for 1 minute - messages need freshness
+export const revalidate = 60
+
 function formatTimeAgo(date: Date): string {
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()

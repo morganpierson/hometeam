@@ -105,10 +105,11 @@ export async function POST(request: NextRequest) {
       const candidateName = [candidate.firstName, candidate.lastName].filter(Boolean).join(' ') || 'A candidate'
       sendNewApplicationEmail({
         employerEmail: jobPosting.employer.contactEmail,
+        employerId: jobPosting.employerId,
         employerName: jobPosting.employer.name,
         candidateName,
         jobTitle: jobPosting.title,
-        applicationId: result.application.id,
+        jobId: jobPosting.id,
       })
     }
 

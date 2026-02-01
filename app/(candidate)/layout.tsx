@@ -26,19 +26,6 @@ export default async function CandidateLayout({
     },
   })
 
-  // Get unread message count for this employee
-  const unreadCount = employee ? await prisma.message.count({
-    where: {
-      conversation: {
-        employees: {
-          some: { id: employee.id }
-        }
-      },
-      senderType: { not: 'EMPLOYEE' },
-      readAt: null,
-    },
-  }) : 0
-
   // If no employee record, redirect to new-user
   if (!employee) {
     redirect('/new-user')
@@ -53,6 +40,19 @@ export default async function CandidateLayout({
   if (!employee.tradeCategory) {
     redirect('/onboarding/employee')
   }
+
+  // Get unread message count for this employee (after redirects to avoid unnecessary query)
+  const unreadCount = await prisma.message.count({
+    where: {
+      conversation: {
+        employees: {
+          some: { id: employee.id }
+        }
+      },
+      senderType: { not: 'EMPLOYEE' },
+      readAt: null,
+    },
+  })
 
   return (
     <div className="min-h-screen bg-gray-50">
