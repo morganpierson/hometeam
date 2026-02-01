@@ -7,7 +7,7 @@ const resend = process.env.RESEND_API_KEY
 // Log whether Resend is configured (helps debug production issues)
 console.log(`[Email] Resend configured: ${resend !== null}`)
 
-const FROM_EMAIL = 'notifications@send.workbench.careers'
+const FROM_EMAIL = 'notifications@workbench.careers'
 
 interface NewApplicationEmailParams {
   employerEmail: string
