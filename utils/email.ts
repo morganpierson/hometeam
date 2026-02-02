@@ -127,7 +127,7 @@ export async function sendApplicationAcceptedEmail({
           <p>Hi ${candidateName || 'there'},</p>
           <p><strong>${employerName}</strong> has reviewed your application for the <strong>${jobTitle}</strong> position and wants to connect with you!</p>
           <p>They've started a conversation with you. Log in to your dashboard to view their message and continue the discussion.</p>
-          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/messages/${conversationId}"
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/inbox/${conversationId}"
              style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 16px;">
             View Conversation
           </a>
@@ -176,8 +176,8 @@ export async function sendNewMessageEmail({
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const viewUrl = isEmployerRecipient
-    ? `${baseUrl}/org/${employerId}/messages/${conversationId}`
-    : `${baseUrl}/dashboard/messages/${conversationId}`
+    ? `${baseUrl}/org/${employerId}/inbox/${conversationId}`
+    : `${baseUrl}/dashboard/inbox/${conversationId}`
 
   const truncatedPreview = messagePreview.length > 150
     ? messagePreview.slice(0, 150) + '...'
